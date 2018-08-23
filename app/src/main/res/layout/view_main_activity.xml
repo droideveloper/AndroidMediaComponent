@@ -40,8 +40,8 @@
     support:layout_constraintTop_toBottomOf="@+id/viewToolbar"
     android:layout_width="0dp"
     android:layout_height="0dip"
-    layout="@layout/view_capture_video_fragment"
+    layout="@layout/view_capture_photo_fragment"
     android:id="@+id/fragmentCapturePhoto"
-    android:name="org.fs.component.media.view.CaptureVideoFragment" />
+    android:name="org.fs.component.media.view.CapturePhotoFragment" />
 
 </android.support.constraint.ConstraintLayout>

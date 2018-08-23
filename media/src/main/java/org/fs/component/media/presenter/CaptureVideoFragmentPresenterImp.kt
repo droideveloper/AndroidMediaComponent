@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.RectF
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.MediaRecorder
 import android.os.Handler
@@ -31,9 +32,7 @@ import android.view.Surface
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForFragment
-import org.fs.component.media.common.SimpleCameraDeviceStateListener
-import org.fs.component.media.common.SimpleCaptureSessionStateListener
-import org.fs.component.media.common.SimpleSurfaceTextureListener
+import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
 import org.fs.component.media.util.C
@@ -42,6 +41,7 @@ import org.fs.component.media.util.component2
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CaptureVideoFragmentView
 import java.io.File
+import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -51,10 +51,16 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     view: CaptureVideoFragmentView) : AbstractPresenter<CaptureVideoFragmentView>(view), CaptureVideoFragmentPresenter {
 
   companion object {
-    private const val CAMERA_BACKGROUND_THREAD = "CameraBackground"
+    private const val CAMERA_CAPTURE_VIDEO_BACKGROUND_THREAD = "CaptureVideoBackgroundThread"
     private const val REQUEST_CAMERA_PERMISSION = 0x99
     private const val CAMERA_TIMEOUT = 2500L
     private const val FILE_SUFFIX = ".mp4"
+
+    private const val MAX_PREVIEW_HEIGHT = 720
+    private const val MAX_PREVIEW_WIDTH = 1280
+
+    private const val VIDEO_ENCODING_BIT_RATE = 4500000//10000000
+    private const val VIDEO_FRAME_RATE = 30
 
     private const val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private const val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
@@ -106,8 +112,8 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
       if (!cameraOpenOrCloseLock.tryAcquire(CAMERA_TIMEOUT, TimeUnit.MILLISECONDS)) {
         throw RuntimeException("we can not create valid session for this device... timeout")
       }
+      setUpCameraOutputs(width, height)
       whenSizeChanged(width, height)
-      setUpCameraOutputs()
 
       val context = view.getContext()
       context?.let { ctx ->
@@ -119,7 +125,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     }
   }
 
-  private val setUpCameraOutputs: () -> Unit = {
+  private val setUpCameraOutputs: (width: Int, height: Int) -> Unit = { width, height ->
     val context = view.getContext()
     context?.let { ctx ->
       val manager = ctx.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -131,6 +137,14 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
         if (direction != null && direction == cameraDirection) {
 
           mediaRecorder = MediaRecorder()
+
+          val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+
+          val selfie = direction == CameraCharacteristics.LENS_FACING_FRONT
+          videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java), width, height, selfie)
+          previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java), width, height, videoSize, selfie)
+
+          // view.textureAspectRatio(previewSize.width, previewSize.height)
 
           sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
 
@@ -149,15 +163,18 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     val bufferRect = RectF(0f, 0f, previewSize.width.toFloat(), previewSize.height.toFloat())
     val cx = viewRect.centerX()
     val cy = viewRect.centerY()
-
+    // configuration for context on android
     if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+      val scale = Math.max(height.toFloat() / previewSize.height,
+          width.toFloat() / previewSize.width)
       bufferRect.offset(cx - bufferRect.centerX(), cy - bufferRect.centerY())
       matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-      val scale = Math.max(viewRect.height() / previewSize.height, viewRect.width() / previewSize.width)
       matrix.apply {
         postScale(scale, scale, cx, cy)
         postRotate((90 * (rotation - 2)).toFloat(), cx, cy)
       }
+    } else if (Surface.ROTATION_180 == rotation) {
+      matrix.postRotate(180f, cx, cy)
     }
     view.transformTextureView(matrix)
   }
@@ -168,7 +185,13 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
         closePreviewSession()
         val texture = view.surfaceTexture()
         val (width, height) = previewSize
-        texture.setDefaultBufferSize(width, height)
+
+        val selfie = cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
+        if (selfie) {
+          texture.setDefaultBufferSize(height, width)
+        } else {
+          texture.setDefaultBufferSize(width, height)
+        }
 
         previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         val previewSurface = Surface(texture)
@@ -201,7 +224,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     camera?.let { cameraDevice ->
       if (view.isTextureAvailable()) {
 
-        closePreviewSession
+        closePreviewSession()
         setUpMediaRecorder()
 
         val texture = view.surfaceTexture()
@@ -219,8 +242,9 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
           val whenConfigured: (session: CameraCaptureSession?) -> Unit = { captureSession ->
             this.captureSession = captureSession
-            this.recording = true
             updatePreview()
+            this.recording = true
+            mediaRecorder?.start()
           }
 
           cameraDevice.createCaptureSession(surfaces, SimpleCaptureSessionStateListener(whenConfigured), backgroundHandler)
@@ -261,7 +285,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   }
 
   private val startBackgroundThread: () -> Unit = {
-    backgroundThread = HandlerThread(CAMERA_BACKGROUND_THREAD)
+    backgroundThread = HandlerThread(CAMERA_CAPTURE_VIDEO_BACKGROUND_THREAD)
     backgroundThread?.start()
     backgroundHandler = Handler(backgroundThread?.looper)
   }
@@ -283,6 +307,31 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     cameraOpenOrCloseLock.release()
   }
 
+  private val chooseOptimalSize: (choices: Array<Size>, width: Int, height: Int, ratio: Size, selfie: Boolean) -> Size = { choices, width, height, _, selfie ->
+    val bigEnough = when {
+      selfie -> choices.filter { optimal -> optimal.height >= height }
+      else -> choices.filter { optimal -> optimal.width >= width }
+    }
+
+    when {
+      selfie -> when {
+        bigEnough.isNotEmpty() -> Collections.min(bigEnough, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+        else -> choices.first()
+      }
+      else -> when {
+        bigEnough.isNotEmpty() -> Collections.min(bigEnough, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+        else -> choices.first()
+      }
+    }
+  }
+
+  private val chooseVideoSize: (choices: Array<Size>, width: Int, height: Int, selfie: Boolean) -> Size = { choices, width, height, selfie ->
+    when {
+      selfie -> Collections.min(choices.filter { item -> item.height >= height }, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+      else -> Collections.min(choices.filter { item -> item.width >= width }, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+    }
+  }
+
   private val setUpMediaRecorder: () -> Unit = {
     val rotation = view.activity().windowManager.defaultDisplay.rotation
     when(sensorOrientation) {
@@ -295,9 +344,9 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
       setVideoSource(MediaRecorder.VideoSource.SURFACE)
       setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
       setOutputFile(file.absolutePath) // LOL
-      setVideoEncodingBitRate(10000000) // why 10m
-      setVideoFrameRate(30) // might need to change those
-      val (width, height) = previewSize
+      setVideoEncodingBitRate(VIDEO_ENCODING_BIT_RATE) // why 10m
+      setVideoFrameRate(VIDEO_FRAME_RATE) // might need to change those
+      val (width, height) = videoSize
       setVideoSize(width, height)
       setVideoEncoder(MediaRecorder.VideoEncoder.H264)
       setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
@@ -321,6 +370,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   private var mediaRecorder: MediaRecorder? = null
 
   private lateinit var previewSize: Size
+  private lateinit var videoSize: Size
   private lateinit var previewRequestBuilder: CaptureRequest.Builder
   private lateinit var cameraId: String
 
@@ -401,11 +451,9 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   override fun onResume() {
     startBackgroundThread()
     if (view.isTextureAvailable()) {
-      previewSize = view.textureSize()
-      val (width, height) = previewSize
+      val (width, height) = view.textureSize()
       openCamera(width, height)
     } else {
-      previewSize = view.textureSize()
       view.surfaceTextureListener(surfaceTextureListener)
     }
   }

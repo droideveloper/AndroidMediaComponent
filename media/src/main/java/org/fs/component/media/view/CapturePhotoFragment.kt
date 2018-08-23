@@ -16,7 +16,6 @@
 package org.fs.component.media.view
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.os.Bundle
@@ -59,8 +58,6 @@ class CapturePhotoFragment : AbstractFragment<CapturePhotoFragmentPresenter>(), 
   override fun surfaceTextureListener(listener: TextureView.SurfaceTextureListener) {
     viewTexture.surfaceTextureListener = listener
   }
-
-  override fun provideTextureBitmap(): Bitmap = viewTexture.bitmap
 
   override fun isTextureAvailable(): Boolean = viewTexture.isAvailable
 

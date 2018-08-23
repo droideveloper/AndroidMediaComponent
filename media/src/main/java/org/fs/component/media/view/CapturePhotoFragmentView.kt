@@ -16,7 +16,6 @@
 package org.fs.component.media.view
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.util.Size
@@ -30,7 +29,6 @@ interface CapturePhotoFragmentView: ViewType {
   fun activity(): Activity
   fun transformTextureView(matrix: Matrix)
   fun textureSize(): Size
-  fun provideTextureBitmap(): Bitmap
   fun surfaceTexture(): SurfaceTexture
   fun surfaceTextureListener(listener: TextureView.SurfaceTextureListener)
   fun isTextureAvailable(): Boolean

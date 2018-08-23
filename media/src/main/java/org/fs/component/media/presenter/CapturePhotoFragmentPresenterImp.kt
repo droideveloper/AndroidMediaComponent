@@ -19,16 +19,18 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.RectF
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
+import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.v4.content.ContextCompat
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
-import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForFragment
@@ -36,9 +38,13 @@ import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
 import org.fs.component.media.common.annotation.State
-import org.fs.component.media.util.*
+import org.fs.component.media.util.C
+import org.fs.component.media.util.component1
+import org.fs.component.media.util.component2
+import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CapturePhotoFragmentView
 import java.io.File
+import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -59,6 +65,11 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
     private const val CAMERA_LOCK_TIMEOUT = 2500L
     private const val FILE_SUFFIX = ".jpeg"
+
+    private const val MAX_IMAGE_COUNT = 2
+
+    private const val MAX_PREVIEW_HEIGHT = 720
+    private const val MAX_PREVIEW_WIDTH = 1280
 
     private const val REQUEST_CAMERA_PERMISSION_CODE = 0x99
   }
@@ -145,6 +156,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
       val rotation = activity.windowManager.defaultDisplay.rotation
 
       val captureBuilder = device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE).apply {
+        addTarget(imageReader?.surface)
         set(CaptureRequest.JPEG_ORIENTATION, (ORIENTATIONS.get(rotation) + sensorOrientation + 270) % 360)
         set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
         autoFlash(this)
@@ -210,14 +222,14 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     // transform view and size dimensions here
     val rotation = activity.windowManager.defaultDisplay.rotation
     val matrix = Matrix()
-    val viewRect = RectF(0f, 0f, previewSize.width.toFloat(), previewSize.height.toFloat())
+    val viewRect = RectF(0f, 0f, width.toFloat(), height.toFloat())
     val bufferRect = RectF(0f, 0f, previewSize.width.toFloat(), previewSize.height.toFloat())
     val cx = viewRect.centerX()
     val cy = viewRect.centerY()
     // check if rotation is valid else transform it with matrix
     if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
       bufferRect.offset(cx - bufferRect.centerX(), cy - bufferRect.centerY())
-      val scale = Math.max(viewRect.height() / height, viewRect.width() / width)
+      val scale = Math.max(height.toFloat() / previewSize.width, width.toFloat() / previewSize.width)
       // apply matrix params
       matrix.apply {
         setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
@@ -236,6 +248,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     captureSession = null
     camera?.close()
     camera = null
+    imageReader?.close()
+    imageReader = null
     cameraOpenCloseLock.release()
   }
 
@@ -251,7 +265,11 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     backgroundHandler = null
   }
 
-  private val setUpCameraOutputs: (width: Int, height: Int) -> Unit = { _, _ ->
+  private val imageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
+    backgroundHandler?.post(ImageSaveTask.newTask(reader.acquireNextImage(), file))
+  }
+
+  private val setUpCameraOutputs: (width: Int, height: Int) -> Unit = { width, height ->
     view.getContext()?.let { ctx ->
       val manager = ctx.getSystemService(Context.CAMERA_SERVICE) as CameraManager
       manager.cameraIdList.forEach { cameraId ->
@@ -259,6 +277,16 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
         val direction = characteristics.get(CameraCharacteristics.LENS_FACING)
         if (direction != null && direction == cameraDirection) {
+
+          val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+
+          val selfie = cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
+          val largest = chooseImageSize(map.getOutputSizes(ImageReader::class.java), width, height, selfie)
+          imageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, MAX_IMAGE_COUNT).apply {
+            setOnImageAvailableListener(imageAvailableListener, backgroundHandler)
+          }
+
+          previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java), width, height, largest, selfie)
 
           sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
 
@@ -272,7 +300,13 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
   private val createCameraPreviewSession: () -> Unit = {
     val surfaceTexture = view.surfaceTexture()
-    surfaceTexture.setDefaultBufferSize(previewSize.width, previewSize.height)
+
+    val selfie = cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
+    if (selfie) {
+      surfaceTexture.setDefaultBufferSize(previewSize.height, previewSize.width)
+    } else {
+      surfaceTexture.setDefaultBufferSize(previewSize.width, previewSize.height)
+    }
 
     val surface = Surface(surfaceTexture)
 
@@ -280,7 +314,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
       previewRequestBuilder = device.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
       previewRequestBuilder.addTarget(surface)
 
-      device.createCaptureSession(listOf(surface/*, imageReader?.surface*/), SimpleCaptureSessionStateListener { session ->
+      device.createCaptureSession(listOf(surface, imageReader?.surface), SimpleCaptureSessionStateListener { session ->
         captureSession = session
 
         previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
@@ -289,6 +323,31 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
         previewRequest = previewRequestBuilder.build()
         captureSession?.setRepeatingRequest(previewRequest, cameraCaptureListener, backgroundHandler)
       }, null)
+    }
+  }
+
+  private val chooseOptimalSize: (choices: Array<Size>, width: Int, height: Int, ratio: Size, selfie: Boolean) -> Size = { choices, width, height, _, selfie ->
+    val bigEnough = when {
+      selfie -> choices.filter { optimal -> optimal.height >= height }
+      else -> choices.filter { optimal -> optimal.width >= width }
+    }
+
+    when {
+      selfie -> when {
+        bigEnough.isNotEmpty() -> Collections.min(bigEnough, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+        else -> choices.first()
+      }
+      else -> when {
+        bigEnough.isNotEmpty() -> Collections.min(bigEnough, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+        else -> choices.first()
+      }
+    }
+  }
+
+  private val chooseImageSize: (choices: Array<Size>, width: Int, height: Int, selfie: Boolean) -> Size = { choices, width, height, selfie ->
+    when {
+      selfie -> Collections.min(choices.filter { item -> item.height >= height }, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+      else -> Collections.min(choices.filter { item -> item.width >= width }, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
     }
   }
 
@@ -305,16 +364,6 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     } ?: false
   }
 
-  private val takePhoto: () -> Unit = {
-    val file = file
-    lockFocus()
-    val source = view.provideTextureBitmap()
-    disposeBag += Observable.just(source)
-      .map { resource -> ImageBufferTask(resource, file).run() }
-      .async()
-      .subscribe { unlockFocus() }
-  }
-
   @FlashMode private var flash = C.FLASH_MODE_DISABLED
   @State private var state = C.STATE_PREVIEW
   @Direction private var cameraDirection = CameraCharacteristics.LENS_FACING_BACK
@@ -323,6 +372,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   private var sensorOrientation = 0
 
   private var camera: CameraDevice? = null
+  private var imageReader: ImageReader? = null
   private var captureSession: CameraCaptureSession? = null
   private var backgroundThread: HandlerThread? = null
   private var backgroundHandler: Handler? = null
@@ -348,12 +398,11 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     }
   }
 
-  // TODO check this in the manner where video recording is mess
   override fun onStart() {
     if (view.isAvailable()) {
       // will take capture here
       disposeBag += view.observeCapture()
-        .subscribe { takePhoto() }
+        .subscribe { lockFocus() }
       // will configure changes
       disposeBag += view.observeChangeCamera()
         .map {
@@ -366,7 +415,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
         .subscribe { direction ->
           cameraDirection = direction
           closeCamera()
-          val (width, height) = previewSize
+          val (width, height) = view.textureSize()
           openCamera(width, height)
         }
       // will configure flash changes
@@ -398,12 +447,9 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     startBackground()
 
     if (view.isTextureAvailable()) {
-      val textureSize = view.textureSize()
-      val (width, height) = textureSize
-      previewSize = textureSize
+      val (width, height) = view.textureSize()
       openCamera(width, height)
     } else {
-      previewSize = view.textureSize()
       view.surfaceTextureListener(surfaceTextureListener)
     }
   }

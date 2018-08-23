@@ -26,9 +26,7 @@ class AspectTextureView @JvmOverloads constructor(context: Context, attrs: Attri
     val height = MeasureSpec.getSize(heightMeasureSpec)
 
     val size = Math.min(width, height)
-
-    val newMeasureSpec = MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY)
-    // and set it here
-    super.onMeasure(newMeasureSpec, newMeasureSpec)
+    val sizeSpec = MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY)
+    super.onMeasure(sizeSpec, sizeSpec)
   }
 }

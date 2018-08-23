@@ -24,10 +24,9 @@ class AspectFrameLayout @JvmOverloads constructor(context: Context, attrs: Attri
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     val width = MeasureSpec.getSize(widthMeasureSpec)
     val height = MeasureSpec.getSize(heightMeasureSpec)
-    // pick the smallest one in here
+
     val size = Math.min(width, height)
-    val newMeasureSpec = MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY)
-    // set it here
-    super.onMeasure(newMeasureSpec, newMeasureSpec)
+    val sizeSpec = MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY)
+    super.onMeasure(sizeSpec, sizeSpec)
   }
 }
