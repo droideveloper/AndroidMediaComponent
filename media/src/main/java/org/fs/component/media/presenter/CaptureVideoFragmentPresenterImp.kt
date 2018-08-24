@@ -29,18 +29,18 @@ import android.support.v4.content.ContextCompat
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
-import org.fs.component.media.util.C
-import org.fs.component.media.util.component1
-import org.fs.component.media.util.component2
-import org.fs.component.media.util.plusAssign
+import org.fs.component.media.util.*
 import org.fs.component.media.view.CaptureVideoFragmentView
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -56,8 +56,9 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     private const val CAMERA_TIMEOUT = 2500L
     private const val FILE_SUFFIX = ".mp4"
 
-    private const val MAX_PREVIEW_HEIGHT = 720
-    private const val MAX_PREVIEW_WIDTH = 1280
+    private const val INTERVAL_ONE_SECOND = 1000L
+    private const val SIMPLE_TIME_FORMAT = "mm:ss"
+    private val ELAPSED_FORMAT = SimpleDateFormat(SIMPLE_TIME_FORMAT, Locale.ENGLISH)
 
     private const val VIDEO_ENCODING_BIT_RATE = 4500000//10000000
     private const val VIDEO_FRAME_RATE = 30
@@ -224,6 +225,11 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     camera?.let { cameraDevice ->
       if (view.isTextureAvailable()) {
 
+        elapsedDisposable = Observable.interval(0L, INTERVAL_ONE_SECOND, TimeUnit.MILLISECONDS)
+          .async()
+          .map { elapsed -> ELAPSED_FORMAT.format(Date(elapsed * INTERVAL_ONE_SECOND)) }
+          .subscribe(view::bindElapsedText)
+
         closePreviewSession()
         setUpMediaRecorder()
 
@@ -255,6 +261,8 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
   private val stopRecordingVideo: () -> Unit = {
     this.recording = false
+    elapsedDisposable?.dispose()
+    view.bindElapsedText(null) // clears text
     mediaRecorder?.apply {
       stop()
       reset()
@@ -368,6 +376,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   private var backgroundThread: HandlerThread? = null
   private var backgroundHandler: Handler? = null
   private var mediaRecorder: MediaRecorder? = null
+  private var elapsedDisposable: Disposable? = null
 
   private lateinit var previewSize: Size
   private lateinit var videoSize: Size
@@ -433,7 +442,10 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
         }
       // stop or start recording
       disposeBag += view.observeStartOrStopRecord()
-        .map { toggle -> toggle.isSelected == recording }
+        .map { toggle ->
+          toggle.isSelected = !recording
+          !recording
+        }
         .subscribe { record ->
           if (record) {
             startRecordingVideo()
@@ -446,6 +458,10 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
   override fun onStop() {
     disposeBag.clear()
+    // it might be disposed or not initialized or whatever
+    if (elapsedDisposable?.isDisposed == false) {
+      elapsedDisposable?.dispose()
+    }
   }
 
   override fun onResume() {

@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.util
+package org.fs.component.media.model.entity
 
-sealed class C {
-  companion object {
-    const val STATE_PREVIEW = 0x00
-    const val STATE_WAITING_LOCK = 0x01
-    const val STATE_WAITING_PRE_CAPTURE = 0x02
-    const val STATE_WAITING_NON_PRE_CAPTURE = 0x03
-    const val STATE_PICTURE_TAKEN = 0x04
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+import org.fs.component.media.common.annotation.MediaType
+import java.io.File
 
-    const val FLASH_MODE_AUTO = 0x00
-    const val FLASH_MODE_DISABLED = 0x01
-
-    const val MEDIA_TYPE_IMAGE = 0x01
-    const val MEDIA_TYPE_VIDEO = 0x02
-  }
-}
+@Parcelize
+data class Media(
+    @MediaType val type: Int,
+    val file: File,
+    val taken: Long,
+    val displayName: String,
+    val mime: String) : Parcelable
