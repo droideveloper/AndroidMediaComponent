@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.view
+package org.fs.component.media.presenter
 
-import org.fs.architecture.common.ViewType
-import org.fs.component.media.model.entity.Media
+import org.fs.architecture.common.PresenterType
 
-interface GalleryFragmentView : ViewType {
-  fun setUp()
-  fun render(media: Media)
-}
+interface GalleryFragmentPresenter: PresenterType

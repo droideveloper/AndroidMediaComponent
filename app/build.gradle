@@ -13,6 +13,14 @@ android {
     versionName "1.0"
   }
   buildTypes {
+    debug {
+      applicationIdSuffix '.debug'
+      minifyEnabled false
+    }
+    staging {
+      applicationIdSuffix '.staging'
+      minifyEnabled false
+    }
     release {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -20,18 +28,20 @@ android {
   }
 }
 
+androidExtensions {
+  experimental = true
+}
+
 dependencies {
   implementation project(":media")
 
-  implementation "com.android.support:appcompat-v7:27.1.1"
-  implementation "android.arch.core:runtime:1.1.1"
   implementation "com.android.support.constraint:constraint-layout:$CONSTRAINT_LAYOUT_VERSION"
   implementation "org.fs.architecture:mvp:$ANDROID_ARCHITECTURE_VERSION"
   implementation "org.fs.rx.extensions:uibinding:$ANDROID_UIBINDING_VERSION"
 
   implementation "com.google.dagger:dagger:$DAGGER_VERSION"
-  implementation "com.google.dagger:dagger-android:$SUPPORT_DAGGER_VERSION"
-  implementation "com.google.dagger:dagger-android-support:$SUPPORT_DAGGER_VERSION"
+  implementation "com.google.dagger:dagger-android:$DAGGER_VERSION"
+  implementation "com.google.dagger:dagger-android-support:$DAGGER_VERSION"
   kapt "com.google.dagger:dagger-compiler:$DAGGER_VERSION"
   kapt "com.google.dagger:dagger-android-processor:$DAGGER_VERSION"
 

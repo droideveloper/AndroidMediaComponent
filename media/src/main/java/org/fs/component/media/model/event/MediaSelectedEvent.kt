@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.view
+package org.fs.component.media.model.event
 
-import org.fs.architecture.common.ViewType
+import org.fs.architecture.common.EventType
 import org.fs.component.media.model.entity.Media
 
-interface GalleryFragmentView : ViewType {
-  fun setUp()
-  fun render(media: Media)
-}
+data class MediaSelectedEvent(val media: Media?): EventType
