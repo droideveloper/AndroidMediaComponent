@@ -24,21 +24,16 @@
 
   <android.support.design.widget.AppBarLayout
     android:id="@+id/viewAppBarLayout"
+    support:elevation="0dip"
     android:background="@android:color/transparent"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <org.fs.component.media.widget.AspectFrameLayout
-      support:layout_scrollFlags="snap|enterAlwaysCollapsed"
+      android:id="@+id/viewPreviewLayout"
+      support:layout_scrollFlags="snap|scroll|enterAlwaysCollapsed"
       android:layout_width="match_parent"
-      android:layout_height="match_parent">
-
-      <ScrollView
-        android:id="@+id/viewScrollPreview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    </org.fs.component.media.widget.AspectFrameLayout>
+      android:layout_height="match_parent" />
 
   </android.support.design.widget.AppBarLayout>
 
@@ -49,5 +44,13 @@
     support:layout_behavior="@string/appbar_scrolling_view_behavior"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
+
+  <ProgressBar
+    android:id="@+id/viewProgress"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:theme="@style/Widget.AppCompat.ProgressBar"
+    support:layout_anchor="@+id/viewRecycler"
+    support:layout_anchorGravity="center" />
 
 </android.support.design.widget.CoordinatorLayout>

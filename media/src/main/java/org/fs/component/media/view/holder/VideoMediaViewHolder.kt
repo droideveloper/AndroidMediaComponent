@@ -17,11 +17,11 @@ package org.fs.component.media.view.holder
 
 import android.view.View
 import android.view.ViewGroup
-import com.bumptech.glide.Glide
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.BusManager
 import org.fs.architecture.util.inflate
 import org.fs.component.media.R
+import org.fs.component.media.common.GlideApp
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.model.event.MediaSelectedEvent
 import org.fs.component.media.util.plusAssign
@@ -31,7 +31,7 @@ class VideoMediaViewHolder(view: View): BaseMediaViewHolder(view) {
 
   constructor(parent: ViewGroup): this(parent.inflate(R.layout.view_video_item))
 
-  private val glide by lazy { Glide.with(view) }
+  private val glide by lazy { GlideApp.with(view) }
   private val disposeBag by lazy { CompositeDisposable() }
 
   override fun attached() {

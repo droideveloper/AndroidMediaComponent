@@ -22,17 +22,14 @@ import io.reactivex.Observable
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.collections.ArrayList
 
 @Singleton
 class GalleryImageRespository @Inject constructor(context: Context): AbstractRepository() {
 
   companion object {
-    private const val DATE_REPRESENTATION = "yyyy.MM.dd"
+    // private const val DATE_REPRESENTATION = "yyyy.MM.dd"
 
     private const val INDEX_DATA = 1
     private const val INDEX_DISPLAY_NAME = 2
@@ -40,31 +37,32 @@ class GalleryImageRespository @Inject constructor(context: Context): AbstractRep
     private const val INDEX_MIME = 4
   }
 
-  private val contextResolver = context.contentResolver
-  private val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+  private val contextResolver by lazy { context.contentResolver }
+  private val uri by lazy { MediaStore.Images.Media.EXTERNAL_CONTENT_URI }
 
-  private val projection = arrayOf(
-    MediaStore.Images.ImageColumns._ID,
-    MediaStore.Images.ImageColumns.DATA,
-    MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-    MediaStore.Images.ImageColumns.MIME_TYPE)
+  private val projection by lazy {
+    arrayOf(
+        MediaStore.Images.ImageColumns._ID,
+        MediaStore.Images.ImageColumns.DATA,
+        MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+        MediaStore.Images.ImageColumns.MIME_TYPE)
+  }
 
-  private val orderBy = MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC"
-  private val simpleDateFormat = SimpleDateFormat(DATE_REPRESENTATION, Locale.US)
+  private val orderBy by lazy { MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC" }
+  //private val simpleDateFormat = SimpleDateFormat(DATE_REPRESENTATION, Locale.US)
 
-  private var latest: Date? = null
+  //private var latest: Date? = null
 
   fun loadAsync(cursor: Cursor = contextResolver.query(uri, projection, null, null, orderBy)): Observable<List<Media>> = Observable.just(cursor)
-    .flatMapIterable { c -> c.toList()}
-    .filter { media ->
+    .map { c -> c.toList()}
+    /*.filter { media ->
       if (latest == null) {
         latest = simpleDateFormat.parse(simpleDateFormat.format(Date(media.taken)))
       }
       val current = simpleDateFormat.parse(simpleDateFormat.format(Date(media.taken)))
       ((latest?.time ?: 0L) - current.time) == 0L
     }
-    .toList()
-    .toObservable()
+    */
 
   private fun Cursor.toList(): List<Media> {
     val list = ArrayList<Media>()

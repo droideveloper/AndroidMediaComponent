@@ -28,5 +28,6 @@ sealed class C {
 
     const val MEDIA_TYPE_IMAGE = 0x01
     const val MEDIA_TYPE_VIDEO = 0x02
+    const val MEDIA_TYPE_ALL = 0x03
   }
 }

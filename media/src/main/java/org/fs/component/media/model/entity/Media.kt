@@ -18,6 +18,7 @@ package org.fs.component.media.model.entity
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 import org.fs.component.media.common.annotation.MediaType
+import org.fs.rx.extensions.util.EMPTY
 import java.io.File
 
 @Parcelize
@@ -27,3 +28,8 @@ data class Media(
     val taken: Long,
     val displayName: String,
     val mime: String) : Parcelable
+{
+ companion object {
+   val EMPTY = Media(Int.MAX_VALUE, File(String.EMPTY), Long.MAX_VALUE, String.EMPTY, String.EMPTY)
+ }
+}

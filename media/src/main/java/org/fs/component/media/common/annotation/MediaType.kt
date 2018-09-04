@@ -21,6 +21,7 @@ import org.fs.component.media.util.C
 @Retention(AnnotationRetention.RUNTIME)
 @IntDef(value = [
   C.MEDIA_TYPE_IMAGE,
-  C.MEDIA_TYPE_VIDEO
+  C.MEDIA_TYPE_VIDEO,
+  C.MEDIA_TYPE_ALL
 ])
 annotation class MediaType

@@ -16,6 +16,7 @@
 package org.fs.component.media.view.adapter
 
 import android.view.ViewGroup
+import org.fs.architecture.common.scope.ForFragment
 import org.fs.architecture.core.AbstractRecyclerViewAdapter
 import org.fs.architecture.util.ObservableList
 import org.fs.component.media.model.entity.Media
@@ -23,8 +24,10 @@ import org.fs.component.media.util.C
 import org.fs.component.media.view.holder.BaseMediaViewHolder
 import org.fs.component.media.view.holder.ImageMediaViewHolder
 import org.fs.component.media.view.holder.VideoMediaViewHolder
+import javax.inject.Inject
 
-class MediaAdapter(dataSet: ObservableList<Media>): AbstractRecyclerViewAdapter<Media, BaseMediaViewHolder>(dataSet) {
+@ForFragment
+class MediaAdapter @Inject constructor(dataSet: ObservableList<Media>): AbstractRecyclerViewAdapter<Media, BaseMediaViewHolder>(dataSet) {
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseMediaViewHolder = when(viewType) {
     C.MEDIA_TYPE_VIDEO -> VideoMediaViewHolder(parent)
