@@ -26,6 +26,7 @@ import org.fs.component.media.R
 import org.fs.component.media.common.GlideApp
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.GalleryFragmentPresenter
+import org.fs.component.media.util.C
 import org.fs.component.media.view.adapter.MediaAdapter
 import javax.inject.Inject
 
@@ -38,6 +39,11 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
 
   @Inject lateinit var mediaAdapter: MediaAdapter
   private val glide by lazy { GlideApp.with(this) }
+
+  private val showOrHide: (Boolean) -> Unit = { visible ->
+    viewProgress.visibility = if (visible) View.VISIBLE else View.GONE
+    viewProgress.isIndeterminate = visible
+  }
 
   override fun onCreateView(factory: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = factory.inflate(R.layout.view_gallery_fragment, container, false)
 
@@ -59,10 +65,15 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
     }
   }
 
+  override fun showProgress() = showOrHide(true)
+  override fun hideProgress() = showOrHide(false)
+
   override fun render(media: Media) = when(media) {
     Media.EMPTY -> Unit // no opt
-    else -> {
-      // do render here
+    else -> when(media.type) {
+      C.MEDIA_TYPE_IMAGE -> Unit
+      C.MEDIA_TYPE_VIDEO -> Unit
+      else -> throw IllegalArgumentException("we do not know why this is error for media type ${media.type}")
     }
   }
 }

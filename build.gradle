@@ -9,7 +9,7 @@ buildscript {
     CONSTRAINT_LAYOUT_VERSION = "1.1.3"
     DAGGER_VERSION   = '2.16'
     GLIDE_VERSION = '4.7.1'
-
+    EXO_PLAYER_VERSION = '2.7.3'
   }
   repositories {
     google()

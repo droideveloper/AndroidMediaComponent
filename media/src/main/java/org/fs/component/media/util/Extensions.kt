@@ -17,10 +17,12 @@ package org.fs.component.media.util
 
 import android.util.Size
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import org.fs.architecture.common.ViewType
 
 operator fun Size.component1() = width
 operator fun Size.component2() = height
@@ -29,3 +31,10 @@ operator fun CompositeDisposable.plusAssign(disposable: Disposable) { add(dispos
 
 fun <T> Observable<T>.async(): Observable<T> = subscribeOn(Schedulers.io())
   .observeOn(AndroidSchedulers.mainThread())
+
+fun <T> Single<T>.async(): Single<T> = subscribeOn(Schedulers.io())
+  .observeOn(AndroidSchedulers.mainThread())
+
+fun <T> Single<T>.async(view: ViewType?): Single<T> = async()
+  .doOnSubscribe { view?.showProgress() }
+  .doFinally { view?.hideProgress() }

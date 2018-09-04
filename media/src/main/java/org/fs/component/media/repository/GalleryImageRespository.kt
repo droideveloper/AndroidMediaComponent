@@ -45,6 +45,7 @@ class GalleryImageRespository @Inject constructor(context: Context): AbstractRep
         MediaStore.Images.ImageColumns._ID,
         MediaStore.Images.ImageColumns.DATA,
         MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+        MediaStore.Images.ImageColumns.DATE_TAKEN,
         MediaStore.Images.ImageColumns.MIME_TYPE)
   }
 

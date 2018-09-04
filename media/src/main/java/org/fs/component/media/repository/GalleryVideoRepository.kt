@@ -46,6 +46,7 @@ class GalleryVideoRepository @Inject constructor(context: Context): AbstractRepo
         MediaStore.Video.VideoColumns._ID,
         MediaStore.Video.VideoColumns.DATA,
         MediaStore.Video.VideoColumns.BUCKET_DISPLAY_NAME,
+        MediaStore.Video.VideoColumns.DATE_TAKEN,
         MediaStore.Video.VideoColumns.MIME_TYPE)
   }
 
