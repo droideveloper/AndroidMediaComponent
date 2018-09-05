@@ -35,11 +35,6 @@ dependencies {
   implementation "org.fs.architecture:mvp:$ANDROID_ARCHITECTURE_VERSION"
   implementation "org.fs.rx.extensions:uibinding:$ANDROID_UIBINDING_VERSION"
 
-  implementation "org.fs.architecture:mvvm:0.0.2"
-
-  implementation "com.google.android.exoplayer:exoplayer:$EXO_PLAYER_VERSION"
-  implementation "com.google.android.exoplayer:extension-okhttp:$EXO_PLAYER_VERSION"
-
   implementation "com.github.bumptech.glide:glide:$GLIDE_VERSION"
   kapt "com.github.bumptech.glide:compiler:$GLIDE_VERSION"
 

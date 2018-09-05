@@ -15,17 +15,23 @@
  */
 package org.fs.component.media.view
 
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.VideoView
 import kotlinx.android.synthetic.main.view_gallery_fragment.*
 import org.fs.architecture.core.AbstractFragment
 import org.fs.component.media.R
 import org.fs.component.media.common.GlideApp
+import org.fs.component.media.common.annotation.MediaType
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.GalleryFragmentPresenter
+import org.fs.component.media.presenter.GalleryFragmentPresenterImp
 import org.fs.component.media.util.C
 import org.fs.component.media.view.adapter.MediaAdapter
 import javax.inject.Inject
@@ -35,10 +41,20 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   companion object {
     private const val RECYCLER_VIEW_ITEM_CACHE_SIZE = 10
     private const val ITEM_SPAN_SIZE = 4
+
+    @JvmStatic fun newFragment(@MediaType style: Int): GalleryFragment = GalleryFragment().apply {
+      arguments = Bundle().apply {
+        putInt(GalleryFragmentPresenterImp.BUNDLE_ARGS_MEDIA_TYPE, style)
+      }
+    }
   }
 
   @Inject lateinit var mediaAdapter: MediaAdapter
   private val glide by lazy { GlideApp.with(this) }
+  private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) }
+
+  private val imageViewPreview by lazy { ImageView(context) }
+  private val videoViewPreview by lazy { VideoView(context) }
 
   private val showOrHide: (Boolean) -> Unit = { visible ->
     viewProgress.visibility = if (visible) View.VISIBLE else View.GONE
@@ -68,12 +84,28 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   override fun showProgress() = showOrHide(true)
   override fun hideProgress() = showOrHide(false)
 
-  override fun render(media: Media) = when(media) {
-    Media.EMPTY -> Unit // no opt
-    else -> when(media.type) {
-      C.MEDIA_TYPE_IMAGE -> Unit
-      C.MEDIA_TYPE_VIDEO -> Unit
-      else -> throw IllegalArgumentException("we do not know why this is error for media type ${media.type}")
+  override fun render(media: Media) {
+    when (media) {
+      Media.EMPTY -> viewPreviewLayout.removeAllViews()
+      else -> when (media.type) {
+        C.MEDIA_TYPE_IMAGE -> {
+          viewPreviewLayout.removeAllViews()
+          viewPreviewLayout.addView(imageViewPreview, lp)
+          glide.clear(imageViewPreview) // clear first
+          // load file from locale
+          glide.load(Uri.fromFile(media.file))
+            .centerCrop()
+            .into(imageViewPreview)
+        }
+        C.MEDIA_TYPE_VIDEO -> {
+          viewPreviewLayout.removeAllViews()
+          viewPreviewLayout.addView(videoViewPreview, lp)
+          videoViewPreview.setVideoURI(Uri.fromFile(media.file))
+          videoViewPreview.start()
+        }
+        else -> throw IllegalArgumentException(
+            "we do not know why this is error for media type ${media.type}")
+      }
     }
   }
 }

@@ -1,3 +1,4 @@
 <resources>
   <string name="app_name">Media Library</string>
+  <string name="str_next_button">Next</string>
 </resources>

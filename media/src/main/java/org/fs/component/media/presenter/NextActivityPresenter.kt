@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.view
+package org.fs.component.media.presenter
 
-import android.graphics.Point
-import android.util.Size
-import android.view.View
-import io.reactivex.Observable
-import org.fs.architecture.common.ViewType
+import org.fs.architecture.common.PresenterType
 
-interface NextActivityView : ViewType {
-  fun setUp()
-  fun position(): Point
-  fun size(): Size
-  fun observeNext(): Observable<View>
-  fun observeCancel(): Observable<View>
-}
+interface NextActivityPresenter: PresenterType
