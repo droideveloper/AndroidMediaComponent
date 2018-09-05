@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
  * Media Component Copyright (C) 2018 Fatih.
- *  
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,19 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.view
-
-import android.graphics.Point
-import android.view.View
-import io.reactivex.Observable
-import org.fs.architecture.common.ViewType
-import org.fs.component.media.model.entity.Media
-import org.fs.component.media.util.Size
-
-interface NextActivityView: ViewType {
-  fun setUp(media: Media)
-  fun position(): Point
-  fun size(): Size
-  fun observeNext(): Observable<View>
-  fun observeCancel(): Observable<View>
-}
+ -->
+<resources>
+  <item name="gallery" type="id" />
+  <item name="photo" type="id" />
+  <item name="video" type="id" />
+</resources>

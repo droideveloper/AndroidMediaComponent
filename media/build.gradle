@@ -40,3 +40,11 @@ dependencies {
 
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"
 }
+
+ext {
+  PUBLISH_GROUP_ID = 'org.fs.component'
+  PUBLISH_ARTIFACT_ID = 'media'
+  PUBLISH_VERSION = '0.0.1'
+}
+
+apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'

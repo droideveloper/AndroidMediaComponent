@@ -13,19 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.view
+package org.fs.component.media.util
 
-import android.graphics.Point
-import android.view.View
-import io.reactivex.Observable
-import org.fs.architecture.common.ViewType
-import org.fs.component.media.model.entity.Media
-import org.fs.component.media.util.Size
-
-interface NextActivityView: ViewType {
-  fun setUp(media: Media)
-  fun position(): Point
-  fun size(): Size
-  fun observeNext(): Observable<View>
-  fun observeCancel(): Observable<View>
-}
+data class Size(val x: Int, val y: Int)

@@ -94,7 +94,6 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
           glide.clear(imageViewPreview) // clear first
           // load file from locale
           glide.load(Uri.fromFile(media.file))
-            .centerCrop()
             .into(imageViewPreview)
         }
         C.MEDIA_TYPE_VIDEO -> {

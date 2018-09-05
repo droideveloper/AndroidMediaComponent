@@ -18,4 +18,5 @@
  -->
 <resources>
   <dimen name="button_width">200dip</dimen>
+  <dimen name="indicator_height">4dip</dimen>
 </resources>

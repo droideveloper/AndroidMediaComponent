@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.view
+package org.fs.component.media.common.annotation
 
-import android.graphics.Point
-import android.view.View
-import io.reactivex.Observable
-import org.fs.architecture.common.ViewType
-import org.fs.component.media.model.entity.Media
-import org.fs.component.media.util.Size
+import android.support.annotation.IntDef
+import org.fs.component.media.util.C
 
-interface NextActivityView: ViewType {
-  fun setUp(media: Media)
-  fun position(): Point
-  fun size(): Size
-  fun observeNext(): Observable<View>
-  fun observeCancel(): Observable<View>
-}
+@Retention(AnnotationRetention.RUNTIME)
+@IntDef(value = [
+  C.COMPONENT_ALL,
+  C.COMPONENT_PHOTO,
+  C.COMPONENT_VIDEO])
+annotation class Component

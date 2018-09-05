@@ -15,17 +15,18 @@
  */
 package org.fs.component.media.view
 
-import android.graphics.Point
+import android.support.annotation.StringRes
+import android.support.design.widget.TabLayout
+import android.support.v4.app.Fragment
 import android.view.View
 import io.reactivex.Observable
 import org.fs.architecture.common.ViewType
-import org.fs.component.media.model.entity.Media
-import org.fs.component.media.util.Size
+import org.fs.component.media.common.annotation.Component
 
-interface NextActivityView: ViewType {
-  fun setUp(media: Media)
-  fun position(): Point
-  fun size(): Size
-  fun observeNext(): Observable<View>
+interface ComponentActivityView: ViewType {
+  fun setUp(@Component type: Int)
   fun observeCancel(): Observable<View>
+  fun observeNext(): Observable<View>
+  fun observeSelectedTab(): Observable<TabLayout.Tab>
+  fun render(fragment: Fragment, @StringRes titleRes: Int)
 }

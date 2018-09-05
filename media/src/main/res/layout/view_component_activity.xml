@@ -18,6 +18,8 @@
  -->
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:support="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
   android:orientation="vertical"
   android:layout_width="match_parent"
   android:layout_height="match_parent">
@@ -33,47 +35,41 @@
       android:id="@+id/viewButtonCancel"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:gravity="start|center_vertical"
+      android:layout_gravity="start|center_vertical"
+      android:gravity="center_vertical|start"
       android:text="@android:string/cancel"
+      style="@style/Widget.AppCompat.Button.Borderless.Colored" />
+
+    <TextView
+      android:id="@+id/viewTextTitle"
+      tools:text="@string/app_name"
+      android:layout_gravity="center"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:textColor="@android:color/white" />
+
+    <Button
+      android:id="@+id/viewButtonNext"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="end|center_vertical"
+      android:text="@string/str_next_button"
       style="@style/Widget.AppCompat.Button.Borderless.Colored" />
 
   </android.support.v7.widget.Toolbar>
 
-  <org.fs.component.media.widget.AspectFrameLayout
-    android:id="@+id/viewPreviewLayout"
-    android:layout_width="match_parent"
-    android:background="@android:color/black"
-    android:layout_height="match_parent">
-
-    <ScrollView
-      android:id="@+id/viewScrollPreview"
-      android:layout_gravity="center"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content" />
-
-  </org.fs.component.media.widget.AspectFrameLayout>
-
   <FrameLayout
+    android:id="@+id/viewContentFrameLayout"
     android:layout_width="match_parent"
     android:layout_height="0dp"
-    android:layout_weight="1">
+    android:layout_weight="1" />
 
-    <ProgressBar
-      android:id="@+id/viewProgress"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:indeterminate="true"
-      android:layout_marginTop="-7dip"
-      style="@style/Widget.AppCompat.ProgressBar.Horizontal" />
-
-    <Button
-      android:id="@+id/viewButtonNext"
-      android:layout_gravity="center"
-      android:layout_width="@dimen/button_width"
-      android:layout_height="wrap_content"
-      android:text="@string/str_next_button"
-      style="@style/Widget.AppCompat.Button.Colored" />
-
-  </FrameLayout>
+  <android.support.design.widget.TabLayout
+    android:id="@+id/viewTabLayout"
+    support:tabMode="fixed"
+    support:tabIndicatorColor="@color/colorPrimaryDark"
+    support:tabIndicatorHeight="@dimen/indicator_height"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/actionBarSize" />
 
 </LinearLayout>

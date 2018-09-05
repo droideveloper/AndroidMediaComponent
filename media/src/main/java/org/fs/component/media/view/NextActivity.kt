@@ -15,16 +15,35 @@
  */
 package org.fs.component.media.view
 
+import android.graphics.Point
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.VideoView
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.view_next_activity.*
 import org.fs.architecture.core.AbstractActivity
 import org.fs.component.media.R
+import org.fs.component.media.common.GlideApp
+import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.NextActivityPresenter
+import org.fs.component.media.util.C
+import org.fs.component.media.util.Size
 import org.fs.rx.extensions.util.clicks
 
 class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView {
+
+  private val imageViewPreview by lazy { ImageView(this) }
+  private val videoViewPreview by lazy { VideoView(this) }
+  private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT) }
+  private val glide by lazy { GlideApp.with(this) }
+
+  private val showOrHideProgress: (Boolean) -> Unit = { show ->
+    viewProgress.isIndeterminate = show
+    viewProgress.visibility = if (show) View.VISIBLE else View.GONE
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -34,10 +53,31 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     presenter.onCreate()
   }
 
-  override fun setUp() {
-
+  override fun setUp(media: Media) {
+    hideProgress()
+    when(media.type) {
+      C.MEDIA_TYPE_VIDEO -> {
+        viewScrollPreview.removeAllViews()
+        viewScrollPreview.addView(imageViewPreview, lp)
+        glide.clear(imageViewPreview)
+        glide.load(Uri.fromFile(media.file))
+          .into(imageViewPreview)
+      }
+      C.MEDIA_TYPE_IMAGE -> {
+        viewScrollPreview.removeAllViews()
+        viewScrollPreview.addView(videoViewPreview, lp)
+        videoViewPreview.setVideoURI(Uri.fromFile(media.file))
+        videoViewPreview.start()
+      }
+      C.MEDIA_TYPE_ALL -> viewScrollPreview.removeAllViews()
+    }
   }
 
+  override fun showProgress() = showOrHideProgress(true)
+  override fun hideProgress() = showOrHideProgress(false)
+
+  override fun position(): Point = Point(viewScrollPreview.scrollX, viewScrollPreview.scrollY)
+  override fun size(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
   override fun observeNext(): Observable<View> = viewButtonNext.clicks()
   override fun observeCancel(): Observable<View> = viewButtonCancel.clicks()
 }
