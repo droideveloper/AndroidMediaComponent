@@ -9,7 +9,7 @@ android {
     minSdkVersion 21
     targetSdkVersion 27
     versionCode 1
-    versionName "0.0.1"
+    versionName "0.0.2"
   }
 
   lintOptions {
@@ -48,7 +48,7 @@ dependencies {
 ext {
   PUBLISH_GROUP_ID = 'org.fs.component'
   PUBLISH_ARTIFACT_ID = 'media'
-  PUBLISH_VERSION = '0.0.1'
+  PUBLISH_VERSION = '0.0.2'
 }
 
 apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'

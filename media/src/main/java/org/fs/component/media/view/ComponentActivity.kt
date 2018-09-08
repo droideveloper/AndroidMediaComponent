@@ -18,10 +18,11 @@ package org.fs.component.media.view
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.TextView
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.view_component_activity.*
+import kotlinx.android.synthetic.main.view_tab_item.view.*
 import org.fs.architecture.core.AbstractActivity
 import org.fs.component.media.R
 import org.fs.component.media.presenter.ComponentActivityPresenter
@@ -32,6 +33,7 @@ import org.fs.rx.extensions.util.clicks
 class ComponentActivity: AbstractActivity<ComponentActivityPresenter>(), ComponentActivityView {
 
   private val data by lazy { arrayOf(Pair(R.id.gallery, R.string.str_gallery), Pair(R.id.photo, R.string.str_photo), Pair(R.id.video, R.string.str_video)) }
+  private val factory by lazy { LayoutInflater.from(this) }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -63,9 +65,9 @@ class ComponentActivity: AbstractActivity<ComponentActivityPresenter>(), Compone
 
   private fun renderTabLayout(data: Array<Pair<Int, Int>>) = data.forEach { (id, stringRes) ->
     viewTabLayout.newTab().apply {
-      val view = TextView(this@ComponentActivity)
+      val view = factory.inflate(R.layout.view_tab_item, viewTabLayout, false)
       view.id = id // id
-      view.setText(stringRes) // text
+      view.viewTextTab.setText(stringRes) // text
       customView = view
       viewTabLayout.addTab(this)
     }

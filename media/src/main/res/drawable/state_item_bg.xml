@@ -16,20 +16,8 @@
  * limitations under the License.
  */
  -->
-<resources>
-  <color name="colorOpaque">#88422E6D</color>
-  <color name="colorNormal">#422E6D</color>
-  <color name="colorRecord">#FF2525</color>
-
-  <color name="colorNotSelectedText">#AAAAAA</color>
-  <color name="colorSelectedText">#333333</color>
-
-  <color name="colorPrimary">@color/dark_blue</color>
-  <color name="colorPrimaryDark">@color/dark_blue_grey</color>
-  <color name="colorAccent">@color/macaroni_and_cheese</color>
-
-  <color name="dark_blue">#572F9F</color>
-  <color name="dark_blue_grey">#261B44</color>
-  <color name="macaroni_and_cheese">#E9AF29</color>
-
-</resources>
+<selector
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:drawable="@drawable/selected_item_bg" android:state_selected="true" />
+  <item android:drawable="@drawable/not_selected_item_bg" />
+</selector>
