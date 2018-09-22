@@ -73,8 +73,6 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   override fun setUp() {
     viewRecycler.apply {
       setHasFixedSize(true)
-      isDrawingCacheEnabled = true
-      drawingCacheQuality = View.DRAWING_CACHE_QUALITY_HIGH
       setItemViewCacheSize(RECYCLER_VIEW_ITEM_CACHE_SIZE)
       layoutManager = StaggeredGridLayoutManager(ITEM_SPAN_SIZE, StaggeredGridLayoutManager.HORIZONTAL)
       adapter = mediaAdapter
