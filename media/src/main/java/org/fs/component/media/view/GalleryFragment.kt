@@ -24,10 +24,10 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.VideoView
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.view_gallery_fragment.*
 import org.fs.architecture.core.AbstractFragment
 import org.fs.component.media.R
-import org.fs.component.media.common.GlideApp
 import org.fs.component.media.common.annotation.MediaType
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.GalleryFragmentPresenter
@@ -50,7 +50,7 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   }
 
   @Inject lateinit var mediaAdapter: MediaAdapter
-  private val glide by lazy { GlideApp.with(this) }
+  private val glide by lazy { Glide.with(this) }
   private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) }
 
   private val imageViewPreview by lazy { ImageView(context) }
@@ -82,10 +82,10 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   override fun showProgress() = showOrHide(true)
   override fun hideProgress() = showOrHide(false)
 
-  override fun render(media: Media) {
+  override fun render(media: Media?) {
     when (media) {
       Media.EMPTY -> viewPreviewLayout.removeAllViews()
-      else -> when (media.type) {
+      else -> when (media?.type) {
         C.MEDIA_TYPE_IMAGE -> {
           viewPreviewLayout.removeAllViews()
           viewPreviewLayout.addView(imageViewPreview, lp)
@@ -101,7 +101,7 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
           videoViewPreview.start()
         }
         else -> throw IllegalArgumentException(
-            "we do not know why this is error for media type ${media.type}")
+            "we do not know why this is error for media type ${media?.type}")
       }
     }
   }

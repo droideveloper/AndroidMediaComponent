@@ -23,7 +23,7 @@ import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.Size
 
 interface NextActivityView: ViewType {
-  fun setUp(media: Media)
+  fun setUp(media: Media?)
   fun position(): Point
   fun size(): Size
   fun observeNext(): Observable<View>

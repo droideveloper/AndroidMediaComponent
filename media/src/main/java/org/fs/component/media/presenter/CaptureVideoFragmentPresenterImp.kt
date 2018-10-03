@@ -139,19 +139,21 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
           mediaRecorder = MediaRecorder()
 
-          val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+          val maybeMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
 
-          val selfie = direction == CameraCharacteristics.LENS_FACING_FRONT
-          videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java), width, height, selfie)
-          previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java), width, height, videoSize, selfie)
+          maybeMap?.let { map ->
+            val selfie = direction == CameraCharacteristics.LENS_FACING_FRONT
+            videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java), width, height, selfie)
+            previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java), width, height, videoSize, selfie)
 
-          // view.textureAspectRatio(previewSize.width, previewSize.height)
+            // view.textureAspectRatio(previewSize.width, previewSize.height)
 
-          sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
+            sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
 
-          flashSupported = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            flashSupported = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
 
-          this.cameraId = cameraId
+            this.cameraId = cameraId
+          }
         }
       }
     }
