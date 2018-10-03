@@ -16,6 +16,6 @@
 package org.fs.component.media.common
 
 import com.bumptech.glide.annotation.GlideModule
-import com.bumptech.glide.module.AppGlideModule
+import com.bumptech.glide.module.LibraryGlideModule
 
-@GlideModule class MediaGlideModule: AppGlideModule()
+@GlideModule class MediaGlideModule: LibraryGlideModule()

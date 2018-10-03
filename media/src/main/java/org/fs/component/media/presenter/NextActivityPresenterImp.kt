@@ -33,7 +33,7 @@ class NextActivityPresenterImp @Inject constructor(
     const val BUNDLE_ARGS_MEDIA = "bundle.args.media"
   }
 
-  private var media: Media = Media.EMPTY
+  private var media: Media? = Media.EMPTY
 
   private val disposeBag by lazy { CompositeDisposable() }
 
@@ -58,7 +58,7 @@ class NextActivityPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += view.observeNext()
-        .subscribe { _ -> when(media.type) {
+        .subscribe { _ -> when(media?.type) {
             C.MEDIA_TYPE_VIDEO -> cropVideo(media)
             C.MEDIA_TYPE_IMAGE -> cropImage(media)
             else -> Unit
@@ -78,11 +78,11 @@ class NextActivityPresenterImp @Inject constructor(
     }
   }
 
-  private fun cropImage(media: Media) {
+  private fun cropImage(media: Media?) {
     // TODO do crop
   }
 
-  private fun cropVideo(media: Media) {
+  private fun cropVideo(media: Media?) {
     // TODO do crop
   }
 }

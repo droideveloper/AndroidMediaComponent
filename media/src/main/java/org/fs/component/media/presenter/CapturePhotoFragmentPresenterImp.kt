@@ -156,10 +156,12 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
       val rotation = activity.windowManager.defaultDisplay.rotation
 
       val captureBuilder = device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE).apply {
-        addTarget(imageReader?.surface)
-        set(CaptureRequest.JPEG_ORIENTATION, (ORIENTATIONS.get(rotation) + sensorOrientation + 270) % 360)
-        set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
-        autoFlash(this)
+        imageReader?.surface?.let { surface ->
+          addTarget(surface)
+          set(CaptureRequest.JPEG_ORIENTATION, (ORIENTATIONS.get(rotation) + sensorOrientation + 270) % 360)
+          set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+          autoFlash(this)
+        }
       }
 
       val listener = SimpleCaptureSessionCaptureListener { result -> if (result is TotalCaptureResult) unlockFocus() else Unit }
@@ -278,21 +280,23 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
         val direction = characteristics.get(CameraCharacteristics.LENS_FACING)
         if (direction != null && direction == cameraDirection) {
 
-          val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+          val maybeMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+          maybeMap?.let { map ->
 
-          val selfie = cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
-          val largest = chooseImageSize(map.getOutputSizes(ImageReader::class.java), width, height, selfie)
-          imageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, MAX_IMAGE_COUNT).apply {
-            setOnImageAvailableListener(imageAvailableListener, backgroundHandler)
+            val selfie = cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
+            val largest = chooseImageSize(map.getOutputSizes(ImageReader::class.java), width, height, selfie)
+            imageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, MAX_IMAGE_COUNT).apply {
+              setOnImageAvailableListener(imageAvailableListener, backgroundHandler)
+            }
+
+            previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java), width, height, largest, selfie)
+
+            sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
+
+            flashSupported = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+
+            this.cameraId = cameraId
           }
-
-          previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java), width, height, largest, selfie)
-
-          sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
-
-          flashSupported = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-
-          this.cameraId = cameraId
         }
       }
     }

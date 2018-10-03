@@ -54,7 +54,7 @@ class GalleryImageRespository @Inject constructor(context: Context): AbstractRep
 
   //private var latest: Date? = null
 
-  fun loadAsync(cursor: Cursor = contextResolver.query(uri, projection, null, null, orderBy)): Observable<List<Media>> = Observable.just(cursor)
+  fun loadAsync(cursor: Cursor? = contextResolver.query(uri, projection, null, null, orderBy)): Observable<List<Media>> = Observable.just(cursor)
     .map { c -> c.toList()}
     /*.filter { media ->
       if (latest == null) {
