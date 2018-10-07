@@ -57,7 +57,7 @@ class GalleryFragmentPresenterImp @Inject constructor(
         mediaType = getInt(BUNDLE_ARGS_MEDIA_TYPE)
       }
       if (containsKey(BUNDLE_ARGS_MEDIA)) {
-        media = getParcelable(BUNDLE_ARGS_MEDIA)
+        media = getParcelable(BUNDLE_ARGS_MEDIA) ?: Media.EMPTY
       }
     }
   }
@@ -78,7 +78,7 @@ class GalleryFragmentPresenterImp @Inject constructor(
     if (view.isAvailable()) {
       disposeBag += BusManager.add(Consumer { evt ->
         when(evt) {
-          is MediaSelectedEvent -> view.render(evt.media ?: Media.EMPTY) // should not come empty here but just to be safe
+          is MediaSelectedEvent -> view.render(evt.media) // should not come empty here but just to be safe
         }
       })
       if (dataSet.isEmpty()) {

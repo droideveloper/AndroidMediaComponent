@@ -17,6 +17,7 @@ package org.fs.component.media.view.holder
 
 import android.view.View
 import android.view.ViewGroup
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.BusManager
 import org.fs.architecture.util.inflate
@@ -34,16 +35,13 @@ class ImageMediaViewHolder(view: View): BaseMediaViewHolder(view) {
   private val glide by lazy { GlideApp.with(view) }
   private val disposeBag by lazy { CompositeDisposable() }
 
-  override fun attached() {
-    disposeBag += itemView.clicks()
-      .map { _ ->  MediaSelectedEvent(entity) }
-      .subscribe(BusManager.Companion::send)
+  override fun bind(entity: Media) {
+    // TODO
+    disposeBag += bindMediaSelectedEvent(entity).subscribe(BusManager.Companion::send)
   }
 
-  override fun detached() = disposeBag.clear()
+  override fun unbind() = disposeBag.clear()
 
-  override fun onBindView(entity: Media?) {
-    this.entity = entity
-    // todo bind it in here
-  }
+  private fun bindMediaSelectedEvent(media: Media): Observable<MediaSelectedEvent> = itemView.clicks()
+      .map { _ -> MediaSelectedEvent(media) }
 }

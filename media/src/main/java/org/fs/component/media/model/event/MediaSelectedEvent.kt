@@ -18,4 +18,4 @@ package org.fs.component.media.model.event
 import org.fs.architecture.common.EventType
 import org.fs.component.media.model.entity.Media
 
-data class MediaSelectedEvent(val media: Media?): EventType
+data class MediaSelectedEvent(val media: Media): EventType

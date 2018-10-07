@@ -40,7 +40,7 @@ class NextActivityPresenterImp @Inject constructor(
   override fun restoreState(restore: Bundle?) {
     restore?.apply {
       if (containsKey(BUNDLE_ARGS_MEDIA)) {
-        media = getParcelable(BUNDLE_ARGS_MEDIA)
+        media = getParcelable(BUNDLE_ARGS_MEDIA) ?: Media.EMPTY
       }
     }
   }
