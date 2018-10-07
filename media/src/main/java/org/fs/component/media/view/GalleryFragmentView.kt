@@ -20,5 +20,5 @@ import org.fs.component.media.model.entity.Media
 
 interface GalleryFragmentView : ViewType {
   fun setUp()
-  fun render(media: Media)
+  fun render(media: Media?)
 }

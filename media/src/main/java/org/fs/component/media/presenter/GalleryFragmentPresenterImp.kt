@@ -49,7 +49,7 @@ class GalleryFragmentPresenterImp @Inject constructor(
   private val disposeBag by lazy { CompositeDisposable() }
 
   private var mediaType: Int = C.MEDIA_TYPE_ALL
-  private var media: Media = Media.EMPTY
+  private var media: Media? = Media.EMPTY
 
   override fun restoreState(restore: Bundle?) {
     restore?.apply {

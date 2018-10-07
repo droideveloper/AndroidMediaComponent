@@ -78,11 +78,11 @@ class NextActivityPresenterImp @Inject constructor(
     }
   }
 
-  private fun cropImage(media: Media) {
+  private fun cropImage(media: Media?) {
     // TODO do crop
   }
 
-  private fun cropVideo(media: Media) {
+  private fun cropVideo(media: Media?) {
     // TODO do crop
   }
 }

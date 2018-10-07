@@ -22,11 +22,11 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.VideoView
+import com.bumptech.glide.Glide
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.view_next_activity.*
 import org.fs.architecture.core.AbstractActivity
 import org.fs.component.media.R
-import org.fs.component.media.common.GlideApp
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.NextActivityPresenter
 import org.fs.component.media.util.C
@@ -38,7 +38,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   private val imageViewPreview by lazy { ImageView(this) }
   private val videoViewPreview by lazy { VideoView(this) }
   private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT) }
-  private val glide by lazy { GlideApp.with(this) }
+  private val glide by lazy { Glide.with(this) }
 
   private val showOrHideProgress: (Boolean) -> Unit = { show ->
     viewProgress.isIndeterminate = show
@@ -53,9 +53,9 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     presenter.onCreate()
   }
 
-  override fun setUp(media: Media) {
+  override fun setUp(media: Media?) {
     hideProgress()
-    when(media.type) {
+    when(media?.type) {
       C.MEDIA_TYPE_VIDEO -> {
         viewScrollPreview.removeAllViews()
         viewScrollPreview.addView(imageViewPreview, lp)
