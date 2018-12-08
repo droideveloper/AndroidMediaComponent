@@ -21,6 +21,8 @@ import org.fs.architecture.core.AbstractRecyclerViewAdapter
 import org.fs.architecture.util.ObservableList
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.view.holder.BaseMediaViewHolder
 import org.fs.component.media.view.holder.ImageMediaViewHolder
 import org.fs.component.media.view.holder.VideoMediaViewHolder
@@ -30,8 +32,8 @@ import javax.inject.Inject
 class MediaAdapter @Inject constructor(dataSet: ObservableList<Media>): AbstractRecyclerViewAdapter<Media, BaseMediaViewHolder>(dataSet) {
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseMediaViewHolder = when(viewType) {
-    C.MEDIA_TYPE_VIDEO -> VideoMediaViewHolder(parent)
-    C.MEDIA_TYPE_IMAGE -> ImageMediaViewHolder(parent)
+    MEDIA_TYPE_VIDEO -> VideoMediaViewHolder(parent)
+    MEDIA_TYPE_IMAGE -> ImageMediaViewHolder(parent)
     else -> throw IllegalArgumentException("we can not recognize viewType $viewType")
   }
 
