@@ -58,7 +58,7 @@ class NextActivityPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += view.observeNext()
-        .subscribe { _ -> when(media.type) {
+        .subscribe { when(media.type) {
             C.MEDIA_TYPE_VIDEO -> cropVideo(media)
             C.MEDIA_TYPE_IMAGE -> cropImage(media)
             else -> Unit
@@ -66,7 +66,7 @@ class NextActivityPresenterImp @Inject constructor(
         }
 
       disposeBag += view.observeCancel()
-        .subscribe { _ -> onBackPressed() }
+        .subscribe { onBackPressed() }
     }
   }
 
