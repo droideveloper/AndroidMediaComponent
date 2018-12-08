@@ -52,8 +52,8 @@ class VideoMediaViewHolder(view: View): BaseMediaViewHolder(view) {
     glide.clear(imageView)
     // load
     glide.load(entity.file)
-        .apply(options)
-        .into(imageView)
+      .apply(options)
+      .into(imageView)
 
     // selection
     disposeBag += bindMediaSelectedEvent(entity).subscribe(BusManager.Companion::send)

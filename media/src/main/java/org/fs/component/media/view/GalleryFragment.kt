@@ -15,8 +15,11 @@
  */
 package org.fs.component.media.view
 
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.content.res.ResourcesCompat
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.LayoutInflater
 import android.view.View
@@ -33,6 +36,8 @@ import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.GalleryFragmentPresenter
 import org.fs.component.media.presenter.GalleryFragmentPresenterImp
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.view.adapter.MediaAdapter
 import javax.inject.Inject
 
@@ -52,6 +57,9 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   @Inject lateinit var mediaAdapter: MediaAdapter
   private val glide by lazy { Glide.with(this) }
   private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) }
+
+  private val verticalDividerDrawable by lazy { ResourcesCompat.getDrawable(resources, R.drawable.ic_divider_vertical, context?.theme) }
+  private val horizontalDividerDrawable by lazy { ResourcesCompat.getDrawable(resources, R.drawable.ic_divider_horizontal, context?.theme) }
 
   private val imageViewPreview by lazy { ImageView(context) }
   private val videoViewPreview by lazy { VideoView(context) }
@@ -76,6 +84,8 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
       setItemViewCacheSize(RECYCLER_VIEW_ITEM_CACHE_SIZE)
       layoutManager = StaggeredGridLayoutManager(ITEM_SPAN_SIZE, StaggeredGridLayoutManager.HORIZONTAL)
       adapter = mediaAdapter
+      applyDivider(verticalDividerDrawable, DividerItemDecoration.VERTICAL)
+      applyDivider(horizontalDividerDrawable, DividerItemDecoration.HORIZONTAL)
     }
   }
 
@@ -86,7 +96,7 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
     when (media) {
       Media.EMPTY -> viewPreviewLayout.removeAllViews()
       else -> when (media?.type) {
-        C.MEDIA_TYPE_IMAGE -> {
+        MEDIA_TYPE_IMAGE -> {
           viewPreviewLayout.removeAllViews()
           viewPreviewLayout.addView(imageViewPreview, lp)
           glide.clear(imageViewPreview) // clear first
@@ -94,7 +104,7 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
           glide.load(Uri.fromFile(media.file))
             .into(imageViewPreview)
         }
-        C.MEDIA_TYPE_VIDEO -> {
+        MEDIA_TYPE_VIDEO -> {
           viewPreviewLayout.removeAllViews()
           viewPreviewLayout.addView(videoViewPreview, lp)
           videoViewPreview.setVideoURI(Uri.fromFile(media.file))
@@ -102,6 +112,16 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
         }
         else -> throw IllegalArgumentException(
             "we do not know why this is error for media type ${media?.type}")
+      }
+    }
+  }
+
+  private fun applyDivider(drawable: Drawable?, orientation: Int) {
+    viewRecycler.apply {
+      drawable?.let { dividerDrawable ->
+        val divider = DividerItemDecoration(context, orientation)
+        divider.setDrawable(dividerDrawable)
+        addItemDecoration(divider)
       }
     }
   }

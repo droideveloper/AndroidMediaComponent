@@ -29,6 +29,9 @@ import org.fs.component.media.model.event.MediaSelectedEvent
 import org.fs.component.media.repository.GalleryImageRespository
 import org.fs.component.media.repository.GalleryVideoRepository
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.async
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.GalleryFragmentView
@@ -106,9 +109,9 @@ class GalleryFragmentPresenterImp @Inject constructor(
   }
 
   private fun dataSource(): Observable<List<Media>> = when(mediaType) {
-    C.MEDIA_TYPE_ALL -> Observable.concat(loadImageMedia(), loadVideoMedia())
-    C.MEDIA_TYPE_IMAGE -> loadImageMedia()
-    C.MEDIA_TYPE_VIDEO -> loadVideoMedia()
+    MEDIA_TYPE_ALL -> Observable.concat(loadImageMedia(), loadVideoMedia())
+    MEDIA_TYPE_IMAGE -> loadImageMedia()
+    MEDIA_TYPE_VIDEO -> loadVideoMedia()
     else -> Observable.empty()
   }
 
