@@ -30,6 +30,9 @@ import org.fs.component.media.R
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.NextActivityPresenter
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.Size
 import org.fs.rx.extensions.util.clicks
 
@@ -56,20 +59,20 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   override fun setUp(media: Media?) {
     hideProgress()
     when(media?.type) {
-      C.MEDIA_TYPE_VIDEO -> {
+      MEDIA_TYPE_VIDEO -> {
         viewScrollPreview.removeAllViews()
         viewScrollPreview.addView(imageViewPreview, lp)
         glide.clear(imageViewPreview)
         glide.load(Uri.fromFile(media.file))
           .into(imageViewPreview)
       }
-      C.MEDIA_TYPE_IMAGE -> {
+      MEDIA_TYPE_IMAGE -> {
         viewScrollPreview.removeAllViews()
         viewScrollPreview.addView(videoViewPreview, lp)
         videoViewPreview.setVideoURI(Uri.fromFile(media.file))
         videoViewPreview.start()
       }
-      C.MEDIA_TYPE_ALL -> viewScrollPreview.removeAllViews()
+      MEDIA_TYPE_ALL -> viewScrollPreview.removeAllViews()
     }
   }
 

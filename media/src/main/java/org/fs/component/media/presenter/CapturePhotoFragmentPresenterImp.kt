@@ -39,6 +39,12 @@ import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
 import org.fs.component.media.common.annotation.State
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
+import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
+import org.fs.component.media.util.C.Companion.STATE_PREVIEW
+import org.fs.component.media.util.C.Companion.STATE_WAITING_LOCK
+import org.fs.component.media.util.C.Companion.STATE_WAITING_NON_PRE_CAPTURE
+import org.fs.component.media.util.C.Companion.STATE_WAITING_PRE_CAPTURE
 import org.fs.component.media.util.component1
 import org.fs.component.media.util.component2
 import org.fs.component.media.util.plusAssign
@@ -109,9 +115,9 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   /** captureSessionListener **/
   private val whenProcess: (result: CaptureResult) -> Unit = { result ->
     when(state) {
-      C.STATE_PREVIEW -> Unit
-      C.STATE_WAITING_LOCK -> whenCapturePicture(result)
-      C.STATE_WAITING_PRE_CAPTURE -> {
+      STATE_PREVIEW -> Unit
+      STATE_WAITING_LOCK -> whenCapturePicture(result)
+      STATE_WAITING_PRE_CAPTURE -> {
         val aeState = result.get(CaptureResult.CONTROL_AE_STATE)
         val hasAeStateWaiting = aeState == null
             || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE
@@ -120,7 +126,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
           state = C.STATE_WAITING_NON_PRE_CAPTURE
         }
       }
-      C.STATE_WAITING_NON_PRE_CAPTURE -> {
+      STATE_WAITING_NON_PRE_CAPTURE -> {
         val aeState = result.get(CaptureResult.CONTROL_AE_STATE)
         val hasStateMature = aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE
         if (hasStateMature) {
@@ -426,8 +432,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
       disposeBag += view.observeToggleFlash()
         .map { toggle ->
           val newMode = when(flash) {
-            C.FLASH_MODE_AUTO -> C.FLASH_MODE_DISABLED
-            C.FLASH_MODE_DISABLED -> C.FLASH_MODE_AUTO
+            FLASH_MODE_AUTO -> C.FLASH_MODE_DISABLED
+            FLASH_MODE_DISABLED -> C.FLASH_MODE_AUTO
             else -> C.FLASH_MODE_AUTO
           }
           toggle.isSelected = newMode == C.FLASH_MODE_AUTO
@@ -436,8 +442,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
         .subscribe { mode ->
           flash = mode
           when(mode) {
-            C.FLASH_MODE_AUTO -> autoFlash(previewRequestBuilder)
-            C.FLASH_MODE_DISABLED -> disableFlash(previewRequestBuilder)
+            FLASH_MODE_AUTO -> autoFlash(previewRequestBuilder)
+            FLASH_MODE_DISABLED -> disableFlash(previewRequestBuilder)
           }
         }
     }

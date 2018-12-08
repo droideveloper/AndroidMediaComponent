@@ -27,6 +27,9 @@ import org.fs.architecture.core.AbstractActivity
 import org.fs.component.media.R
 import org.fs.component.media.presenter.ComponentActivityPresenter
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.COMPONENT_ALL
+import org.fs.component.media.util.C.Companion.COMPONENT_PHOTO
+import org.fs.component.media.util.C.Companion.COMPONENT_VIDEO
 import org.fs.rx.extensions.design.util.selects
 import org.fs.rx.extensions.util.clicks
 
@@ -44,9 +47,9 @@ class ComponentActivity: AbstractActivity<ComponentActivityPresenter>(), Compone
   }
 
   override fun setUp(type: Int) = when(type) {
-    C.COMPONENT_ALL -> renderTabLayout(data)
-    C.COMPONENT_PHOTO -> renderTabLayout(data.filter { (id, _) -> id != R.id.video }.toTypedArray())
-    C.COMPONENT_VIDEO -> renderTabLayout(data.filter { (id, _) -> id != R.id.photo }.toTypedArray())
+    COMPONENT_ALL -> renderTabLayout(data)
+    COMPONENT_PHOTO -> renderTabLayout(data.filter { (id, _) -> id != R.id.video }.toTypedArray())
+    COMPONENT_VIDEO -> renderTabLayout(data.filter { (id, _) -> id != R.id.photo }.toTypedArray())
     else -> throw IllegalArgumentException("component type is not known for $type")
   }
 

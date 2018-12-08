@@ -38,6 +38,8 @@ import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
 import org.fs.component.media.util.*
+import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
+import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
 import org.fs.component.media.view.CaptureVideoFragmentView
 import java.io.File
 import java.text.SimpleDateFormat
@@ -212,7 +214,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   }
 
   private val updatePreview: () -> Unit = {
-    camera?.let { _ ->
+    camera?.let {
       setUpCaptureRequestBuilder(previewRequestBuilder)
       captureSession?.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler)
     }
@@ -276,8 +278,8 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
     if (flashSupported) {
       when(flash) {
-        C.FLASH_MODE_AUTO -> autoFlash(builder)
-        C.FLASH_MODE_DISABLED -> disableFlash(builder)
+        FLASH_MODE_AUTO -> autoFlash(builder)
+        FLASH_MODE_DISABLED -> disableFlash(builder)
       }
     }
   }
@@ -413,23 +415,23 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
       disposeBag += view.observeToggleFlash()
         .map { toggle ->
           val newFlash = when(flash) {
-            C.FLASH_MODE_AUTO -> C.FLASH_MODE_DISABLED
-            C.FLASH_MODE_DISABLED -> C.FLASH_MODE_AUTO
+            FLASH_MODE_AUTO -> FLASH_MODE_DISABLED
+            FLASH_MODE_DISABLED -> FLASH_MODE_AUTO
             else -> C.FLASH_MODE_AUTO
           }
-          toggle.isSelected = newFlash == C.FLASH_MODE_AUTO
+          toggle.isSelected = newFlash == FLASH_MODE_AUTO
           newFlash
         }
         .subscribe { mode ->
           flash = mode
           when(mode) {
-            C.FLASH_MODE_AUTO -> autoFlash(previewRequestBuilder)
-            C.FLASH_MODE_DISABLED -> disableFlash(previewRequestBuilder)
+            FLASH_MODE_AUTO -> autoFlash(previewRequestBuilder)
+            FLASH_MODE_DISABLED -> disableFlash(previewRequestBuilder)
           }
         }
       // change camera
       disposeBag += view.observeChangeCamera()
-        .map { _ ->
+        .map {
           when(cameraDirection) {
             CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
             CameraCharacteristics.LENS_FACING_FRONT -> CameraCharacteristics.LENS_FACING_BACK
