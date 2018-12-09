@@ -33,5 +33,8 @@ sealed class C {
     const val COMPONENT_ALL = 0x01
     const val COMPONENT_PHOTO = 0x02
     const val COMPONENT_VIDEO = 0x03
+
+    const val RENDER_FILL = 0x01
+    const val RENDER_FIX  = 0x02
   }
 }

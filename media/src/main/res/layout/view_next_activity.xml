@@ -45,11 +45,30 @@
     android:background="@android:color/black"
     android:layout_height="match_parent">
 
-    <ScrollView
-      android:id="@+id/viewScrollPreview"
-      android:layout_gravity="center"
+    <HorizontalScrollView
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content" />
+      android:layout_height="wrap_content">
+
+      <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <FrameLayout
+          android:id="@+id/viewPreview"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" />
+
+      </ScrollView>
+
+    </HorizontalScrollView>
+
+    <Button
+      android:layout_gravity="bottom|start"
+      android:id="@+id/viewChangeScale"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/app_name"
+      android:theme="@style/Widget.AppCompat.Button" />
 
   </org.fs.component.media.widget.AspectFrameLayout>
 

@@ -96,10 +96,10 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
   override fun showProgress() = showOrHide(true)
   override fun hideProgress() = showOrHide(false)
 
-  override fun render(media: Media?) {
+  override fun render(media: Media) {
     when (media) {
       Media.EMPTY -> viewPreviewLayout.removeAllViews()
-      else -> when (media?.type) {
+      else -> when (media.type) {
         MEDIA_TYPE_IMAGE -> {
           viewPreviewLayout.removeAllViews()
           viewPreviewLayout.addView(imageViewPreview, lp)
@@ -115,7 +115,7 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
           videoViewPreview.start()
         }
         else -> throw IllegalArgumentException(
-            "we do not know why this is error for media type ${media?.type}")
+            "we do not know why this is error for media type ${media.type}")
       }
     }
   }

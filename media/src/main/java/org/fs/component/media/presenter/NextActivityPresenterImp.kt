@@ -16,11 +16,14 @@
 package org.fs.component.media.presenter
 
 import android.os.Bundle
+import android.util.Log
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForActivity
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.RENDER_FILL
+import org.fs.component.media.util.C.Companion.RENDER_FIX
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
 import javax.inject.Inject
@@ -65,6 +68,13 @@ class NextActivityPresenterImp @Inject constructor(
           }
         }
 
+      disposeBag += view.observeChangeScale()
+        .doOnNext {
+          it.isSelected = !it.isSelected
+        }
+        .map { if (it.isSelected) RENDER_FIX else RENDER_FILL }
+        .subscribe { view.render(media, it) }
+
       disposeBag += view.observeCancel()
         .subscribe { onBackPressed() }
     }
@@ -78,11 +88,11 @@ class NextActivityPresenterImp @Inject constructor(
     }
   }
 
-  private fun cropImage(media: Media?) {
+  private fun cropImage(media: Media) {
     // TODO do crop
   }
 
-  private fun cropVideo(media: Media?) {
+  private fun cropVideo(media: Media) {
     // TODO do crop
   }
 }
