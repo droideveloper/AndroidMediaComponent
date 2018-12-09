@@ -22,6 +22,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.BusManager
+import org.fs.architecture.common.ThreadManager
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.architecture.util.ObservableList
 import org.fs.component.media.common.CompareMediaByDateTaken
@@ -97,7 +98,9 @@ class GalleryFragmentPresenterImp @Inject constructor(
     }
   }
 
-  override fun onStop() = disposeBag.clear()
+  override fun onStop() = disposeBag.clear().also {
+    ThreadManager.clearAll()
+  }
 
   private fun checkIfInitialLoadNeeded() {
     if (dataSet.isEmpty()) {
@@ -117,6 +120,10 @@ class GalleryFragmentPresenterImp @Inject constructor(
         if (view.isAvailable()) {
           if (data.isNotEmpty()) {
             dataSet.addAll(data)
+            val selected = data.first()
+            ThreadManager.runOnUiThreadDelayed(Runnable {
+              BusManager.send(MediaSelectedEvent(selected))
+            }, 250L) // should post it delayed
           }
         }
       }, { error -> view.showError(error.toString()) })

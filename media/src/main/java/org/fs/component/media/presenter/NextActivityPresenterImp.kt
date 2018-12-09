@@ -17,15 +17,21 @@ package org.fs.component.media.presenter
 
 import android.os.Bundle
 import android.util.Log
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
+import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.FFmpegLoadBinaryResponseHandler
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForActivity
+import org.fs.architecture.util.EMPTY
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
+import org.fs.component.media.util.Size
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
+import java.io.File
 import javax.inject.Inject
 
 @ForActivity
@@ -39,6 +45,7 @@ class NextActivityPresenterImp @Inject constructor(
   private var media: Media = Media.EMPTY
 
   private val disposeBag by lazy { CompositeDisposable() }
+  private val directory by lazy { File(view.getContext()?.filesDir, "modified_file") }
 
   override fun restoreState(restore: Bundle?) {
     restore?.apply {
@@ -55,6 +62,16 @@ class NextActivityPresenterImp @Inject constructor(
   override fun onCreate() {
     if (view.isAvailable()) {
       view.setUp(media)
+      // will create directory for temp file
+      if (!directory.exists()) {
+        directory.mkdirs()
+      } else {
+        // if already exists then we clear everything previously left over
+        val files = directory.listFiles()
+        if (files.isNotEmpty()) {
+          files.forEach { f -> f.delete() }
+        }
+      }
     }
   }
 
@@ -93,6 +110,50 @@ class NextActivityPresenterImp @Inject constructor(
   }
 
   private fun cropVideo(media: Media) {
-    // TODO do crop
+    val ffmpeg = FFmpeg.getInstance(view.getContext())
+    ffmpeg.loadBinary(object: FFmpegLoadBinaryResponseHandler {
+      override fun onFinish() = Unit
+      override fun onFailure() = Unit
+      override fun onStart() = Unit
+
+      override fun onSuccess() {
+        ffmpeg.execute(toScaleAndCrop(media, view.retrieveSize()),
+            object : FFmpegExecuteResponseHandler {
+              override fun onFinish() = Unit
+
+              override fun onSuccess(message: String?) {
+                Log.e("FFMPEG-Success", message ?: String.EMPTY)
+              }
+
+              override fun onFailure(message: String?) {
+                Log.e("FFMPEG-Error", message ?: String.EMPTY)
+              }
+
+              override fun onProgress(message: String?) {
+                Log.e("FFMPEG-Progress", message ?: String.EMPTY)
+              }
+
+              override fun onStart() = Unit
+            })
+      }
+    })
   }
+
+  private fun toScaleAndPad(media: Media, size: Size): Array<String> = arrayOf("-y", "-i", media.file.absolutePath,
+      "-vf", "scale=-1:720,pad=720:ih:(ow-iw)/2:color=white",
+      "-vcodec", "mpeg4",
+      "-threads", "5",
+      "-preset", "ultrafast",
+      "-strict", "-2",
+      toFile(media).absolutePath)
+
+  private fun toScaleAndCrop(media: Media, size: Size): Array<String> = arrayOf("-y", "-i", media.file.absolutePath,
+      "-vf", "scale=-1:720,crop=iw:720",
+      "-vcodec", "mpeg4",
+      "-threads", "5",
+      "-preset", "ultrafast",
+      "-strict", "-2",
+      toFile(media).absolutePath)
+
+  private fun toFile(media: Media): File = File(directory, media.file.name)
 }

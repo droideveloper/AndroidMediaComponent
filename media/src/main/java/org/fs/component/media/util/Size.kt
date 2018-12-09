@@ -15,4 +15,6 @@
  */
 package org.fs.component.media.util
 
-data class Size(val x: Int, val y: Int)
+data class Size(val x: Int, val y: Int) {
+  override fun toString(): String = "${x}x$y"
+}
