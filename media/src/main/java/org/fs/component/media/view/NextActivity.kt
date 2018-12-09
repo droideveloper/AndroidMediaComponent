@@ -36,6 +36,7 @@ import org.fs.component.media.presenter.NextActivityPresenter
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.RENDER_FILL
+import org.fs.component.media.util.Size
 import org.fs.rx.extensions.util.clicks
 
 class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView {
@@ -105,7 +106,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
       retriever.setDataSource(media.file.absolutePath)
       val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
       val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
-      FrameLayout.LayoutParams(width, height).also {
+      FrameLayout.LayoutParams(width, height, Gravity.CENTER).also {
         retriever.release()
       }
     }
@@ -122,4 +123,6 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   }
 
   private fun createFixLayoutParams(): FrameLayout.LayoutParams = FrameLayout.LayoutParams(viewPreviewLayout.width, viewPreviewLayout.height, Gravity.CENTER)
+
+  override fun retrieveSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
 }
