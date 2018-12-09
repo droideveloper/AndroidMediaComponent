@@ -26,7 +26,6 @@ import kotlinx.android.synthetic.main.view_tab_item.view.*
 import org.fs.architecture.core.AbstractActivity
 import org.fs.component.media.R
 import org.fs.component.media.presenter.ComponentActivityPresenter
-import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.COMPONENT_ALL
 import org.fs.component.media.util.C.Companion.COMPONENT_PHOTO
 import org.fs.component.media.util.C.Companion.COMPONENT_VIDEO

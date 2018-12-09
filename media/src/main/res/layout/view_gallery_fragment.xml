@@ -31,7 +31,6 @@
 
     <org.fs.component.media.widget.AspectFrameLayout
       android:id="@+id/viewPreviewLayout"
-      support:layout_scrollFlags="snap|scroll|enterAlwaysCollapsed"
       android:layout_width="match_parent"
       android:layout_height="match_parent" />
 

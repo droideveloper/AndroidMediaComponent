@@ -29,7 +29,6 @@ import org.fs.architecture.core.AbstractActivity
 import org.fs.component.media.R
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.NextActivityPresenter
-import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
