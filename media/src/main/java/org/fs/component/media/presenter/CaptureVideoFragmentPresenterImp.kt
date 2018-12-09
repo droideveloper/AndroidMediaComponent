@@ -17,6 +17,7 @@ package org.fs.component.media.presenter
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -32,15 +33,20 @@ import android.view.Surface
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Consumer
 import org.fs.architecture.common.AbstractPresenter
+import org.fs.architecture.common.BusManager
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
+import org.fs.component.media.model.entity.Media
+import org.fs.component.media.model.event.NextSelectedEvent
 import org.fs.component.media.util.*
 import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
 import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
 import org.fs.component.media.view.CaptureVideoFragmentView
+import org.fs.component.media.view.NextActivity
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -387,14 +393,15 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   private lateinit var previewRequestBuilder: CaptureRequest.Builder
   private lateinit var cameraId: String
 
+  private val directory by lazy { File(view.getContext()?.filesDir, "vid_captures") }
+
   private var recording = false
   private var sensorOrientation = 0
   private var flashSupported = false
   @FlashMode private var flash = C.FLASH_MODE_AUTO
   @Direction private var cameraDirection = CameraCharacteristics.LENS_FACING_BACK
 
-  private val file get() = File(File(view.getContext()?.filesDir, "vid_captures"),
-    "${System.currentTimeMillis()}_VID$FILE_SUFFIX")
+  private val file get() = File(directory,"${System.currentTimeMillis()}_VID$FILE_SUFFIX")
 
   private val disposeBag by lazy { CompositeDisposable() }
 
@@ -402,15 +409,32 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     if (view.isAvailable()) {
       view.setUp()
       // we will create this for user storage to execute video and other components
-      val directory = File(view.getContext()?.filesDir, "vid_captures")
       if (!directory.exists()) {
         directory.mkdirs()
+      } else {
+        // clear previous stores
+        val files = directory.listFiles()
+        if (files.isNotEmpty()) {
+          files.forEach { f -> f.delete() }
+        }
       }
     }
   }
 
   override fun onStart() {
     if (view.isAvailable()) {
+      disposeBag += BusManager.add(Consumer { evt -> when(evt) {
+          is NextSelectedEvent -> view.startActivity(Intent(view.getContext(), NextActivity::class.java).apply {
+            val files = directory.listFiles()
+            if (files.isNotEmpty()) {
+              val recorded = files.firstOrNull()
+              if (recorded != null) {
+                putExtra(NextActivityPresenterImp.BUNDLE_ARGS_MEDIA, Media(C.MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, "video/mp4"))
+              }
+            }
+          })
+        }
+      })
       // change flash
       disposeBag += view.observeToggleFlash()
         .map { toggle ->
@@ -463,9 +487,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   override fun onStop() {
     disposeBag.clear()
     // it might be disposed or not initialized or whatever
-    if (elapsedDisposable?.isDisposed == false) {
-      elapsedDisposable?.dispose()
-    }
+    elapsedDisposable?.dispose()
   }
 
   override fun onResume() {

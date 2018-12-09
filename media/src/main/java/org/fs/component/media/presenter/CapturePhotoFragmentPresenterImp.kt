@@ -18,6 +18,7 @@ package org.fs.component.media.presenter
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.graphics.Matrix
@@ -32,12 +33,16 @@ import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Consumer
 import org.fs.architecture.common.AbstractPresenter
+import org.fs.architecture.common.BusManager
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
 import org.fs.component.media.common.annotation.State
+import org.fs.component.media.model.entity.Media
+import org.fs.component.media.model.event.NextSelectedEvent
 import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
 import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
@@ -49,6 +54,7 @@ import org.fs.component.media.util.component1
 import org.fs.component.media.util.component2
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CapturePhotoFragmentView
+import org.fs.component.media.view.NextActivity
 import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -384,13 +390,14 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   private var backgroundThread: HandlerThread? = null
   private var backgroundHandler: Handler? = null
 
+  private val directory by lazy { File(view.getContext()?.filesDir, "img_captures") }
+
   private lateinit var previewRequestBuilder: CaptureRequest.Builder
   private lateinit var previewRequest: CaptureRequest
   private lateinit var cameraId: String
   private lateinit var previewSize: Size
 
-  private val file get() = File(File(view.getContext()?.filesDir, "img_captures"),
-      "${System.currentTimeMillis()}_IMG$FILE_SUFFIX")
+  private val file get() = File(directory,"${System.currentTimeMillis()}_IMG$FILE_SUFFIX")
 
   private val disposeBag by lazy { CompositeDisposable() }
 
@@ -398,15 +405,32 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     if (view.isAvailable()) {
       view.setUp()
       // we will create this for user storage to execute video and other components
-      val directory = File(view.getContext()?.filesDir, "img_captures")
       if (!directory.exists()) {
         directory.mkdirs()
+      } else {
+        // get rid of previous stores
+        val files = directory.listFiles()
+        if (files.isNotEmpty()) {
+          files.forEach { f -> f.delete() }
+        }
       }
     }
   }
 
   override fun onStart() {
     if (view.isAvailable()) {
+      disposeBag += BusManager.add(Consumer { evt -> when(evt) {
+          is NextSelectedEvent -> view.startActivity(Intent(view.getContext(), NextActivity::class.java).apply {
+            val files = directory.listFiles()
+            if (files.isNotEmpty()) {
+              val taken = files.firstOrNull()
+              if (taken != null) {
+                putExtra(NextActivityPresenterImp.BUNDLE_ARGS_MEDIA, Media(C.MEDIA_TYPE_IMAGE, taken, Date().time, taken.name, "image/jpeg"))
+              }
+            }
+          })
+        }
+      })
       // will take capture here
       disposeBag += view.observeCapture()
         .subscribe { lockFocus() }
@@ -446,9 +470,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     }
   }
 
-  override fun onStop() {
-    disposeBag.clear()
-  }
+  override fun onStop() = disposeBag.clear()
 
   override fun onResume() {
     startBackground()

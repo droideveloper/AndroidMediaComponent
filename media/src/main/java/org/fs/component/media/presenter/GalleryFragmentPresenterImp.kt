@@ -15,6 +15,7 @@
  */
 package org.fs.component.media.presenter
 
+import android.content.Intent
 import android.os.Bundle
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -26,6 +27,7 @@ import org.fs.architecture.util.ObservableList
 import org.fs.component.media.common.CompareMediaByDateTaken
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.model.event.MediaSelectedEvent
+import org.fs.component.media.model.event.NextSelectedEvent
 import org.fs.component.media.repository.GalleryImageRepository
 import org.fs.component.media.repository.GalleryVideoRepository
 import org.fs.component.media.util.C
@@ -35,6 +37,7 @@ import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.async
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.GalleryFragmentView
+import org.fs.component.media.view.NextActivity
 import javax.inject.Inject
 
 @ForFragment
@@ -52,7 +55,7 @@ class GalleryFragmentPresenterImp @Inject constructor(
   private val disposeBag by lazy { CompositeDisposable() }
 
   private var mediaType: Int = C.MEDIA_TYPE_ALL
-  private var media: Media? = Media.EMPTY
+  private var media = Media.EMPTY
 
   override fun restoreState(restore: Bundle?) {
     restore?.apply {
@@ -81,7 +84,12 @@ class GalleryFragmentPresenterImp @Inject constructor(
     if (view.isAvailable()) {
       disposeBag += BusManager.add(Consumer { evt ->
         when(evt) {
-          is MediaSelectedEvent -> view.render(evt.media) // should not come empty here but just to be safe
+          is MediaSelectedEvent -> view.render(evt.media).also {
+            media = evt.media
+          } // should not come empty here but just to be safe
+          is NextSelectedEvent -> view.startActivity(Intent(view.getContext(), NextActivity::class.java).apply {
+            putExtra(NextActivityPresenterImp.BUNDLE_ARGS_MEDIA, media)
+          })
         }
       })
 
@@ -95,6 +103,9 @@ class GalleryFragmentPresenterImp @Inject constructor(
     if (dataSet.isEmpty()) {
       load()
     }
+    if (media != Media.EMPTY) {
+      BusManager.send(MediaSelectedEvent(media))
+    }
   }
 
   private fun load() {
@@ -102,18 +113,13 @@ class GalleryFragmentPresenterImp @Inject constructor(
       .flatMap { s -> Observable.fromIterable(s) }
       .toSortedList(CompareMediaByDateTaken.COMPARE_MEDIA_BY_DATE_TAKEN)
       .async(view)
-      .subscribe(
-      { data ->
+      .subscribe({ data ->
         if (view.isAvailable()) {
           if (data.isNotEmpty()) {
             dataSet.addAll(data)
           }
         }
-      },
-      { error ->
-        view.showError(error.toString())
-
-      })
+      }, { error -> view.showError(error.toString()) })
   }
 
   private fun dataSource(): Observable<List<Media>> = when(mediaType) {
