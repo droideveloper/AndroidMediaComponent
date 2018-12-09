@@ -26,7 +26,7 @@ import org.fs.architecture.util.ObservableList
 import org.fs.component.media.common.CompareMediaByDateTaken
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.model.event.MediaSelectedEvent
-import org.fs.component.media.repository.GalleryImageRespository
+import org.fs.component.media.repository.GalleryImageRepository
 import org.fs.component.media.repository.GalleryVideoRepository
 import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
@@ -41,7 +41,7 @@ import javax.inject.Inject
 class GalleryFragmentPresenterImp @Inject constructor(
     view: GalleryFragmentView,
     private val dataSet: ObservableList<Media>,
-    private val galleryImageRepository: GalleryImageRespository,
+    private val galleryImageRepository: GalleryImageRepository,
     private val galleryVideoRepository: GalleryVideoRepository): AbstractPresenter<GalleryFragmentView>(view), GalleryFragmentPresenter {
 
   companion object {

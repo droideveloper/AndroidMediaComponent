@@ -35,7 +35,6 @@ import org.fs.component.media.common.annotation.MediaType
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.GalleryFragmentPresenter
 import org.fs.component.media.presenter.GalleryFragmentPresenterImp
-import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.view.adapter.MediaAdapter

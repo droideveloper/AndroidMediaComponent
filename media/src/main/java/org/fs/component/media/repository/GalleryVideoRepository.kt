@@ -30,8 +30,6 @@ import javax.inject.Singleton
 class GalleryVideoRepository @Inject constructor(context: Context): AbstractRepository() {
 
   companion object {
-    //private const val DATE_REPRESENTATION = "yyyy.MM.dd"
-
     private const val INDEX_DATA = 1
     private const val INDEX_DISPLAY_NAME = 2
     private const val INDEX_TAKEN = 3
@@ -51,19 +49,9 @@ class GalleryVideoRepository @Inject constructor(context: Context): AbstractRepo
   }
 
   private val orderBy by lazy { MediaStore.Video.VideoColumns.DATE_TAKEN + " DESC" }
-  //private val simpleDateFormat = SimpleDateFormat(DATE_REPRESENTATION, Locale.US)
-
-  //private var latest: Date? = null
 
   fun loadAsync(cursor: Cursor? = contextResolver.query(uri, projection, null, null, orderBy)): Observable<List<Media>> = Observable.just(cursor)
     .map { c -> c.toList()}
-    /*.filter { media ->
-      if (latest == null) {
-        latest = simpleDateFormat.parse(simpleDateFormat.format(Date(media.taken)))
-      }
-      val current = simpleDateFormat.parse(simpleDateFormat.format(Date(media.taken)))
-      ((latest?.time ?: 0L) - current.time) == 0L
-    }*/
 
   private fun Cursor.toList(): List<Media> {
     val list = ArrayList<Media>()

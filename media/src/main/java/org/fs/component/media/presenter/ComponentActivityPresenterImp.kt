@@ -28,6 +28,9 @@ import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.COMPONENT_ALL
 import org.fs.component.media.util.C.Companion.COMPONENT_PHOTO
 import org.fs.component.media.util.C.Companion.COMPONENT_VIDEO
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CapturePhotoFragment
 import org.fs.component.media.view.CaptureVideoFragment
@@ -67,7 +70,7 @@ class ComponentActivityPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += view.observeNext()
-        .map { NextSelectedEvent() }
+        .map { NextSelectedEvent() } // TODO go for next activity and wait
         .subscribe(BusManager.Companion::send)
 
       disposeBag += view.observeCancel()
@@ -109,9 +112,9 @@ class ComponentActivityPresenterImp @Inject constructor(
   }
 
   private fun mediaType(): Int = when(component) {
-    COMPONENT_ALL -> C.MEDIA_TYPE_ALL
-    COMPONENT_VIDEO -> C.MEDIA_TYPE_VIDEO
-    COMPONENT_PHOTO -> C.MEDIA_TYPE_IMAGE
+    COMPONENT_ALL -> MEDIA_TYPE_ALL
+    COMPONENT_VIDEO -> MEDIA_TYPE_VIDEO
+    COMPONENT_PHOTO -> MEDIA_TYPE_IMAGE
     else -> throw IllegalStateException("component is not known $component")
   }
 }

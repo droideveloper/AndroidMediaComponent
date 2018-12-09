@@ -74,9 +74,6 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
     private const val MAX_IMAGE_COUNT = 2
 
-    //private const val MAX_PREVIEW_HEIGHT = 720
-    //private const val MAX_PREVIEW_WIDTH = 1280
-
     private const val REQUEST_CAMERA_PERMISSION_CODE = 0x99
   }
 
