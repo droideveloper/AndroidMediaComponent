@@ -16,7 +16,6 @@
 package org.fs.component.media.presenter
 
 import android.os.Bundle
-import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
@@ -24,7 +23,6 @@ import org.fs.architecture.common.BusManager
 import org.fs.architecture.common.scope.ForActivity
 import org.fs.component.media.R
 import org.fs.component.media.model.event.NextSelectedEvent
-import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.COMPONENT_ALL
 import org.fs.component.media.util.C.Companion.COMPONENT_PHOTO
 import org.fs.component.media.util.C.Companion.COMPONENT_VIDEO
@@ -44,21 +42,27 @@ class ComponentActivityPresenterImp @Inject constructor(
 
   companion object {
     const val BUNDLE_ARGS_COMPONENT = "bundle.args.component"
+    private const val BUNDLE_ARGS_SELECTION = "bundle.args.selection"
   }
 
   private val disposeBag by lazy { CompositeDisposable() }
-  private var component: Int = C.COMPONENT_ALL
+  private var component: Int = COMPONENT_ALL
+  private var selection  = -1
 
   override fun restoreState(restore: Bundle?) {
     restore?.apply {
       if (containsKey(BUNDLE_ARGS_COMPONENT)) {
         component = getInt(BUNDLE_ARGS_COMPONENT)
       }
+      if (containsKey(BUNDLE_ARGS_SELECTION)) {
+        selection = getInt(BUNDLE_ARGS_SELECTION, -1)
+      }
     }
   }
 
   override fun storeState(store: Bundle?) {
     store?.putInt(BUNDLE_ARGS_COMPONENT, component)
+    store?.putInt(BUNDLE_ARGS_SELECTION, selection)
   }
 
   override fun onCreate() {
@@ -77,7 +81,14 @@ class ComponentActivityPresenterImp @Inject constructor(
         .subscribe { onBackPressed() }
 
       disposeBag += view.observeSelectedTab()
+        .map { it.customView?.id ?: -1 }
+        .filter { selection != it }
+        .doOnNext {
+          selection = it
+        }
         .subscribe(this::render)
+
+      checkIfInitialLoadNeeded()
     }
   }
 
@@ -89,12 +100,17 @@ class ComponentActivityPresenterImp @Inject constructor(
     }
   }
 
-  private fun render(tab: TabLayout.Tab) {
-    tab.customView?.id?.let { id ->
-      val fragment = fragmentFor(id)
-      val titleRes = titleResFor(id)
-      view.render(fragment, titleRes)
+  private fun checkIfInitialLoadNeeded() {
+    if (selection == -1) {
+      selection = R.id.gallery
+      render(selection)
     }
+  }
+
+  private fun render(tabId: Int) {
+    val fragment = fragmentFor(tabId)
+    val titleRes = titleResFor(tabId)
+    view.render(fragment, titleRes)
   }
 
   private fun fragmentFor(id: Int): Fragment = when(id) {

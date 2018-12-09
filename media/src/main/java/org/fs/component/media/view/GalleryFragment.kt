@@ -21,6 +21,8 @@ import android.os.Bundle
 import android.support.v4.content.res.ResourcesCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.StaggeredGridLayoutManager
+import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -55,7 +57,10 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
 
   @Inject lateinit var mediaAdapter: MediaAdapter
   private val glide by lazy { Glide.with(this) }
-  private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT) }
+  private val lp by lazy { FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+      gravity = Gravity.CENTER
+    }
+  }
 
   private val verticalDividerDrawable by lazy { ResourcesCompat.getDrawable(resources, R.drawable.ic_divider_vertical, context?.theme) }
   private val horizontalDividerDrawable by lazy { ResourcesCompat.getDrawable(resources, R.drawable.ic_divider_horizontal, context?.theme) }
@@ -81,7 +86,7 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
     viewRecycler.apply {
       setHasFixedSize(true)
       setItemViewCacheSize(RECYCLER_VIEW_ITEM_CACHE_SIZE)
-      layoutManager = StaggeredGridLayoutManager(ITEM_SPAN_SIZE, StaggeredGridLayoutManager.HORIZONTAL)
+      layoutManager = StaggeredGridLayoutManager(ITEM_SPAN_SIZE, StaggeredGridLayoutManager.VERTICAL)
       adapter = mediaAdapter
       applyDivider(verticalDividerDrawable, DividerItemDecoration.VERTICAL)
       applyDivider(horizontalDividerDrawable, DividerItemDecoration.HORIZONTAL)
@@ -123,5 +128,10 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
         addItemDecoration(divider)
       }
     }
+  }
+
+  override fun showError(error: String) {
+    super.showError(error)
+    Log.e(this::class.java.simpleName, error)
   }
 }

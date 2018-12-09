@@ -1,15 +1,17 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
   compileSdkVersion 28
+
   defaultConfig {
+    applicationId "com.example.app"
     minSdkVersion 21
     targetSdkVersion 28
     versionCode 1
-    versionName "0.0.9"
+    versionName "1.0"
   }
 
   lintOptions {
@@ -30,27 +32,19 @@ android {
   }
 }
 
-androidExtensions {
-  experimental = true
-}
-
 dependencies {
-  implementation "com.android.support.constraint:constraint-layout:$CONSTRAINT_LAYOUT_VERSION"
+  implementation "com.android.support:appcompat-v7:$SUPPORT_VERSION"
+
   implementation "org.fs.architecture:mvp:$ANDROID_ARCHITECTURE_VERSION"
   implementation "org.fs.rx.extensions:uibinding:$ANDROID_UIBINDING_VERSION"
+  implementation project(':media')
 
-  implementation "com.writingminds:FFmpegAndroid:$FFMPEG_VERSION"
-
-  implementation "com.github.bumptech.glide:glide:$GLIDE_VERSION"
-  kapt "com.github.bumptech.glide:compiler:$GLIDE_VERSION"
+  implementation "com.google.dagger:dagger:$DAGGER_VERSION"
+  implementation "com.google.dagger:dagger-android:$DAGGER_VERSION"
+  implementation "com.google.dagger:dagger-android-support:$DAGGER_VERSION"
+  kapt "com.google.dagger:dagger-compiler:$DAGGER_VERSION"
+  kapt "com.google.dagger:dagger-android-processor:$DAGGER_VERSION"
 
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"
-}
 
-ext {
-  PUBLISH_GROUP_ID = 'org.fs.component'
-  PUBLISH_ARTIFACT_ID = 'media'
-  PUBLISH_VERSION = '0.0.9'
 }
-
-apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'

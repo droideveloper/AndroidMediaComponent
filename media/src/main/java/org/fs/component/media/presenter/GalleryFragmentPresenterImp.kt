@@ -84,13 +84,18 @@ class GalleryFragmentPresenterImp @Inject constructor(
           is MediaSelectedEvent -> view.render(evt.media) // should not come empty here but just to be safe
         }
       })
-      if (dataSet.isEmpty()) {
-        load()
-      }
+
+      checkIfInitialLoadNeeded()
     }
   }
 
   override fun onStop() = disposeBag.clear()
+
+  private fun checkIfInitialLoadNeeded() {
+    if (dataSet.isEmpty()) {
+      load()
+    }
+  }
 
   private fun load() {
     disposeBag += dataSource()
@@ -100,12 +105,15 @@ class GalleryFragmentPresenterImp @Inject constructor(
       .subscribe(
       { data ->
         if (view.isAvailable()) {
-          if (data.isEmpty()) {
+          if (data.isNotEmpty()) {
             dataSet.addAll(data)
           }
         }
       },
-      { error -> view.showError(error.toString()) })
+      { error ->
+        view.showError(error.toString())
+
+      })
   }
 
   private fun dataSource(): Observable<List<Media>> = when(mediaType) {

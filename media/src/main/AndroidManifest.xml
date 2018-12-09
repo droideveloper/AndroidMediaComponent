@@ -9,9 +9,11 @@
   <application>
 
     <activity android:name=".view.ComponentActivity"
+      android:theme="@style/ComponentTheme"
       android:screenOrientation="portrait" />
 
     <activity android:name=".view.NextActivity"
+      android:theme="@style/ComponentTheme"
       android:screenOrientation="portrait" />
 
   </application>

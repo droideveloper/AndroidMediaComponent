@@ -66,10 +66,13 @@
 
   <android.support.design.widget.TabLayout
     android:id="@+id/viewTabLayout"
+    support:tabGravity="fill"
     support:tabMode="fixed"
+    support:tabPadding="0dip"
+    android:background="@android:color/white"
     support:tabIndicatorColor="@color/colorPrimaryDark"
     support:tabIndicatorHeight="@dimen/indicator_height"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/actionBarSize" />
+    android:layout_height="wrap_content" />
 
 </LinearLayout>

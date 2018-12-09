@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
- * Media Component Copyright (C) 2018 Fatih.
+ * Playz Android Kotlin Copyright (C) 2018 Fatih, Playz.lol.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,12 @@
  * limitations under the License.
  */
  -->
-<FrameLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent">
-
-  <TextView
-    android:id="@+id/viewTextTab"
-    android:gravity="center"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:textColor="@color/state_text"
-    android:textSize="18sp"
-    tools:text="@string/app_name" />
-
-</FrameLayout>
+<layer-list
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape android:shape="rectangle">
+      <stroke android:color="@color/colorPrimaryDark"
+        android:width="4dip" />
+    </shape>
+  </item>
+</layer-list>

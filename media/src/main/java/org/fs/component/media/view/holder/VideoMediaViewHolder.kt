@@ -22,6 +22,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Consumer
 import kotlinx.android.synthetic.main.view_video_item.view.*
 import org.fs.architecture.common.BusManager
 import org.fs.architecture.util.inflate
@@ -37,6 +38,7 @@ class VideoMediaViewHolder(view: View): BaseMediaViewHolder(view) {
 
   private val options by lazy { RequestOptions().apply {
       centerCrop()
+      placeholder(R.drawable.ic_video_place_holder)
       diskCacheStrategy(DiskCacheStrategy.RESOURCE)
       dontAnimate()
     }
@@ -57,6 +59,10 @@ class VideoMediaViewHolder(view: View): BaseMediaViewHolder(view) {
 
     // selection
     disposeBag += bindMediaSelectedEvent(entity).subscribe(BusManager.Companion::send)
+    disposeBag += BusManager.add(Consumer { evt -> when(evt) {
+        is MediaSelectedEvent -> itemView.isSelected = entity == evt.media
+      }
+    })
   }
 
   override fun unbind() = disposeBag.clear()
