@@ -62,6 +62,7 @@
       android:id="@+id/viewProgress"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:indeterminateTint="@color/colorAccent"
       android:indeterminate="true"
       android:layout_marginTop="-7dip"
       style="@style/Widget.AppCompat.ProgressBar.Horizontal" />

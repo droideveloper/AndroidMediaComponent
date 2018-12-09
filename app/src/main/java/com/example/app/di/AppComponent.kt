@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
 /*
- * Media Component Copyright (C) 2018 Fatih.
- *
+ * Playz Android Kotlin Copyright (C) 2018 Fatih, Playz.lol.
+ *  
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- -->
-<resources>
-  <style name="ComponentTheme" parent="Theme.AppCompat.Light.NoActionBar">
-    <item name="colorPrimary">@color/colorPrimary</item>
-    <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-    <item name="colorAccent">@color/colorAccent</item>
-  </style>
-</resources>
+
+package com.example.app.di
+
+import com.example.app.App
+import dagger.Component
+import dagger.android.AndroidInjector
+import dagger.android.support.AndroidSupportInjectionModule
+import javax.inject.Singleton
+
+@Singleton
+@Component(modules = [AndroidSupportInjectionModule::class, AppModule::class])
+interface AppComponent: AndroidInjector<App> {
+
+  @Component.Builder
+  abstract class Builder: AndroidInjector.Builder<App>()
+}
