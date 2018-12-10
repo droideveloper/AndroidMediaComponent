@@ -23,6 +23,7 @@ import android.view.TextureView
 import android.view.View
 import io.reactivex.Observable
 import org.fs.architecture.common.ViewType
+import java.io.File
 
 interface CapturePhotoFragmentView: ViewType {
   fun setUp()
@@ -35,4 +36,5 @@ interface CapturePhotoFragmentView: ViewType {
   fun observeToggleFlash(): Observable<View>
   fun observeChangeCamera(): Observable<View>
   fun observeCapture(): Observable<View>
+  fun bindPreview(file: File)
 }

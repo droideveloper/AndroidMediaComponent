@@ -36,6 +36,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Consumer
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.BusManager
+import org.fs.architecture.common.ThreadManager
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
@@ -68,7 +69,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     private const val SIMPLE_TIME_FORMAT = "mm:ss"
     private val ELAPSED_FORMAT = SimpleDateFormat(SIMPLE_TIME_FORMAT, Locale.ENGLISH)
 
-    private const val VIDEO_ENCODING_BIT_RATE = 4500000//10000000
+    private const val VIDEO_ENCODING_BIT_RATE = 4500000
     private const val VIDEO_FRAME_RATE = 30
 
     private const val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
@@ -235,6 +236,12 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     camera?.let { cameraDevice ->
       if (view.isTextureAvailable()) {
 
+        // clear everthing we do not want to see
+        val files = directory.listFiles()
+        if (files.isNotEmpty()) {
+          files.forEach { f -> f.delete() }
+        }
+
         elapsedDisposable = Observable.interval(0L, INTERVAL_ONE_SECOND, TimeUnit.MILLISECONDS)
           .async()
           .map { elapsed -> ELAPSED_FORMAT.format(Date(elapsed * INTERVAL_ONE_SECOND)) }
@@ -277,6 +284,19 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
       stop()
       reset()
     }
+
+    val files = directory.listFiles()
+    if (files.isNotEmpty()) {
+      val recorded = files.firstOrNull()
+      if (recorded != null) {
+        ThreadManager.runOnUiThread(Runnable {
+          if (view.isAvailable()) {
+            view.bindPreview(recorded)
+          }
+        })
+      }
+    }
+
     startPreview()
   }
 

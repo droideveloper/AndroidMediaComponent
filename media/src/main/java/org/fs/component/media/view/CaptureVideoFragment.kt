@@ -18,6 +18,7 @@ package org.fs.component.media.view
 import android.app.Activity
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.util.Size
 import android.view.LayoutInflater
@@ -30,6 +31,8 @@ import org.fs.architecture.core.AbstractFragment
 import org.fs.component.media.R
 import org.fs.component.media.presenter.CaptureVideoFragmentPresenter
 import org.fs.rx.extensions.util.clicks
+import java.io.File
+import java.util.concurrent.TimeUnit
 
 class CaptureVideoFragment : AbstractFragment<CaptureVideoFragmentPresenter>(), CaptureVideoFragmentView {
 
@@ -62,6 +65,16 @@ class CaptureVideoFragment : AbstractFragment<CaptureVideoFragmentPresenter>(), 
 
   override fun bindElapsedText(text: String?) {
     viewTextElapsedTime.text = text
+  }
+
+  override fun bindPreview(file: File) {
+    val retriever = MediaMetadataRetriever()
+    retriever.setDataSource(file.absolutePath)
+    val thumb = retriever.getFrameAtTime(TimeUnit.SECONDS.toMicros(1L))
+    if (thumb != null) {
+      viewPreview.setImageBitmap(thumb)
+      viewPreview.isSelected = true
+    }
   }
 
   override fun observeToggleFlash(): Observable<View> = viewButtonFlash.clicks()

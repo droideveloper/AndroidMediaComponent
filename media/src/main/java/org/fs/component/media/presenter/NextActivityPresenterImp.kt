@@ -26,6 +26,8 @@ import org.fs.architecture.common.scope.ForActivity
 import org.fs.architecture.util.EMPTY
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
 import org.fs.component.media.util.Size
@@ -43,6 +45,7 @@ class NextActivityPresenterImp @Inject constructor(
   }
 
   private var media: Media = Media.EMPTY
+  private var renderMode = RENDER_FILL
 
   private val disposeBag by lazy { CompositeDisposable() }
   private val directory by lazy { File(view.getContext()?.filesDir, "modified_file") }
@@ -61,7 +64,7 @@ class NextActivityPresenterImp @Inject constructor(
 
   override fun onCreate() {
     if (view.isAvailable()) {
-      view.setUp(media)
+      view.setUp(media, renderMode)
       // will create directory for temp file
       if (!directory.exists()) {
         directory.mkdirs()
@@ -90,7 +93,10 @@ class NextActivityPresenterImp @Inject constructor(
           it.isSelected = !it.isSelected
         }
         .map { if (it.isSelected) RENDER_FIX else RENDER_FILL }
-        .subscribe { view.render(media, it) }
+        .subscribe {
+          renderMode = it // grab reference for future use
+          view.render(media, renderMode)
+        }
 
       disposeBag += view.observeCancel()
         .subscribe { onBackPressed() }
@@ -117,7 +123,7 @@ class NextActivityPresenterImp @Inject constructor(
       override fun onStart() = Unit
 
       override fun onSuccess() {
-        ffmpeg.execute(toScaleAndCrop(media, view.retrieveSize()),
+        ffmpeg.execute(toScaleAndPad(media, view.retrieveSize()),
             object : FFmpegExecuteResponseHandler {
               override fun onFinish() = Unit
 
@@ -139,21 +145,53 @@ class NextActivityPresenterImp @Inject constructor(
     })
   }
 
-  private fun toScaleAndPad(media: Media, size: Size): Array<String> = arrayOf("-y", "-i", media.file.absolutePath,
+  private fun toScaleAndPad(media: Media, size: Size): Array<String> = arrayOf("-y",
+      "-i", media.file.absolutePath,
+      "-ss", "10",
       "-vf", "scale=-1:720,pad=720:ih:(ow-iw)/2:color=white",
-      "-vcodec", "mpeg4",
+      "-t", "10",
+      "-vcodec", "libx264",
       "-threads", "5",
       "-preset", "ultrafast",
       "-strict", "-2",
       toFile(media).absolutePath)
 
-  private fun toScaleAndCrop(media: Media, size: Size): Array<String> = arrayOf("-y", "-i", media.file.absolutePath,
+  private fun toScaleAndCrop(media: Media, size: Size): Array<String> = arrayOf("-y",
+      "-i", media.file.absolutePath,
       "-vf", "scale=-1:720,crop=iw:720",
-      "-vcodec", "mpeg4",
+      "-vcodec", "libx264",
       "-threads", "5",
       "-preset", "ultrafast",
       "-strict", "-2",
       toFile(media).absolutePath)
+
+  private fun toScaleAndCrop(media: Media, renderMode: Int) = when(media.type) {
+    MEDIA_TYPE_IMAGE -> when(renderMode) {
+      RENDER_FILL -> Unit
+      RENDER_FIX -> Unit
+      else -> Unit
+    }
+    MEDIA_TYPE_VIDEO -> when(renderMode) {
+      RENDER_FILL -> Unit
+      RENDER_FIX -> Unit
+      else -> Unit
+    }
+    else -> Unit // Do not
+  }
+
+  private fun toScaleAndPad(media: Media, renderMode: Int) = when(media.type) {
+    MEDIA_TYPE_IMAGE -> when(renderMode) {
+      RENDER_FILL -> Unit
+      RENDER_FIX -> Unit
+      else -> Unit
+    }
+    MEDIA_TYPE_VIDEO -> when(renderMode) {
+      RENDER_FILL -> Unit
+      RENDER_FIX -> Unit
+      else -> Unit
+    }
+    else -> Unit
+  }
 
   private fun toFile(media: Media): File = File(directory, media.file.name)
 }

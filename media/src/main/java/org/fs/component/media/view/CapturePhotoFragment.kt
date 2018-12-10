@@ -16,6 +16,7 @@
 package org.fs.component.media.view
 
 import android.app.Activity
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.os.Bundle
@@ -30,6 +31,7 @@ import org.fs.architecture.core.AbstractFragment
 import org.fs.component.media.R
 import org.fs.component.media.presenter.CapturePhotoFragmentPresenter
 import org.fs.rx.extensions.util.clicks
+import java.io.File
 
 class CapturePhotoFragment : AbstractFragment<CapturePhotoFragmentPresenter>(), CapturePhotoFragmentView {
 
@@ -57,6 +59,12 @@ class CapturePhotoFragment : AbstractFragment<CapturePhotoFragmentPresenter>(), 
 
   override fun surfaceTextureListener(listener: TextureView.SurfaceTextureListener) {
     viewTexture.surfaceTextureListener = listener
+  }
+
+  override fun bindPreview(file: File) {
+    val thumb = BitmapFactory.decodeFile(file.absolutePath)
+    viewPreview.setImageBitmap(thumb)
+    viewPreview.isSelected = true
   }
 
   override fun isTextureAvailable(): Boolean = viewTexture.isAvailable

@@ -29,6 +29,7 @@ import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
@@ -36,6 +37,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.BusManager
+import org.fs.architecture.common.ThreadManager
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
@@ -141,6 +143,12 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   }
 
   private val whenCapturePicture: (result: CaptureResult) -> Unit = { result ->
+    // clear anything new in here
+    val files = directory.listFiles()
+    if (files.isNotEmpty()) {
+      files.forEach { f -> f.delete() }
+    }
+
     val afState = result.get(CaptureResult.CONTROL_AF_STATE)
     if (afState == null) {
       captureStillPicture()
@@ -173,7 +181,21 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
         }
       }
 
-      val listener = SimpleCaptureSessionCaptureListener { result -> if (result is TotalCaptureResult) unlockFocus() else Unit }
+      val listener = SimpleCaptureSessionCaptureListener { result ->
+        if (result is TotalCaptureResult) unlockFocus() else Unit
+
+        val files = directory.listFiles()
+        if (files.isNotEmpty()) {
+          val captured = files.firstOrNull()
+          if (captured != null) {
+            ThreadManager.runOnUiThread(Runnable {
+              if (view.isAvailable()) {
+                view.bindPreview(captured)
+              }
+            })
+          }
+        }
+      }
       captureSession?.apply {
         stopRepeating()
         abortCaptures()
@@ -277,7 +299,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   }
 
   private val imageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
-    backgroundHandler?.post(ImageSaveTask.newTask(reader.acquireNextImage(), file))
+    backgroundHandler?.post(ImageSaveTask.newTask(reader.acquireLatestImage(), file))
   }
 
   private val setUpCameraOutputs: (width: Int, height: Int) -> Unit = { width, height ->

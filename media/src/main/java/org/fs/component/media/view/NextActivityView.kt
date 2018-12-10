@@ -22,10 +22,10 @@ import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.Size
 
 interface NextActivityView: ViewType {
-  fun setUp(media: Media)
+  fun setUp(media: Media, renderMode: Int)
   fun observeNext(): Observable<View>
   fun observeCancel(): Observable<View>
   fun observeChangeScale(): Observable<View>
   fun retrieveSize(): Size
-  fun render(media: Media, renderType: Int)
+  fun render(media: Media, renderMode: Int)
 }
