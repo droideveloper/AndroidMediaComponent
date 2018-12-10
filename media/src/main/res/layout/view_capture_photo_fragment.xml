@@ -18,6 +18,7 @@
  -->
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
   android:orientation="vertical"
   android:layout_width="match_parent"
   android:layout_height="match_parent">
@@ -63,6 +64,14 @@
       android:layout_gravity="center"
       android:background="@android:color/transparent"
       android:src="@drawable/state_capture_photo" />
+
+    <org.fs.component.media.widget.SelectableImageView
+      android:id="@+id/viewPreview"
+      android:layout_gravity="end|center_vertical"
+      android:layout_marginEnd="8dip"
+      tools:src="@drawable/ic_image_place_holder"
+      android:layout_width="72dip"
+      android:layout_height="72dip" />
 
   </FrameLayout>
 

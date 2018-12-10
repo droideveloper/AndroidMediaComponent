@@ -45,11 +45,6 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   private val videoViewPreview by lazy { VideoView(this) }
   private val glide by lazy { Glide.with(this) }
 
-  private val options by lazy { RequestOptions().apply {
-      centerInside()
-    }
-  }
-
   private val showOrHideProgress: (Boolean) -> Unit = { show ->
     viewProgress.isIndeterminate = show
     viewProgress.visibility = if (show) View.VISIBLE else View.GONE
@@ -63,15 +58,15 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     presenter.onCreate()
   }
 
-  override fun setUp(media: Media) {
+  override fun setUp(media: Media, renderMode: Int) {
     hideProgress()
-    render(media, RENDER_FILL)
+    render(media, renderMode)
   }
 
-  override fun render(media: Media, renderType: Int) {
+  override fun render(media: Media, renderMode: Int) {
     viewPreview.removeAllViews()
 
-    val lp = when(renderType) {
+    val lp = when(renderMode) {
       RENDER_FILL -> createFillLayoutParams(media)
       else -> createFixLayoutParams()
     }

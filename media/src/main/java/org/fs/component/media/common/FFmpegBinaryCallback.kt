@@ -1,5 +1,5 @@
 /*
- * Media Component Copyright (C) 2018 Fatih.
+ * Playz Android Kotlin Copyright (C) 2018 Fatih, Playz.lol.
  *  
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.fs.component.media.common
 
-import android.graphics.Bitmap
-import java.io.File
-import java.io.FileOutputStream
+import com.github.hiteshsondhi88.libffmpeg.FFmpegLoadBinaryResponseHandler
 
-class ImageBufferTask(private val bitmap: Bitmap, private val file: File): Runnable {
+open class FFmpegBinaryCallback(
+    private val start: (() -> Unit)? = null,
+    private val finish: (() -> Unit)? = null,
+    private val success: (() -> Unit)? = null,
+    private val error: (() -> Unit)? = null): FFmpegLoadBinaryResponseHandler {
 
-  override fun run() {
-    FileOutputStream(file).use { out ->
-      bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-    }
-    bitmap.recycle() // remove reference
-  }
+  override fun onFinish() = finish?.invoke() ?: Unit
+  override fun onSuccess() = success?.invoke() ?: Unit
+  override fun onFailure() = error?.invoke() ?: Unit
+  override fun onStart() = start?.invoke() ?: Unit
 }
