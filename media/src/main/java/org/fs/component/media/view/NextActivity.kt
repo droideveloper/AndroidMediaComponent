@@ -81,6 +81,14 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
       MEDIA_TYPE_VIDEO -> {
         viewPreview.addView(videoViewPreview, lp)
         videoViewPreview.setVideoURI(Uri.fromFile(media.file))
+        videoViewPreview.setOnCompletionListener { mp ->
+          mp.seekTo(0)
+          mp.start()
+        }
+        videoViewPreview.setOnPreparedListener { mp ->
+          mp.setVolume(0f, 0f)
+          mp.start()
+        }
         videoViewPreview.start()
       }
       else -> Unit

@@ -16,6 +16,7 @@
 package org.fs.component.media.view
 
 import android.graphics.drawable.Drawable
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.res.ResourcesCompat
@@ -31,6 +32,7 @@ import android.widget.ImageView
 import android.widget.VideoView
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.view_gallery_fragment.*
+import kotlinx.android.synthetic.main.view_video_item.*
 import org.fs.architecture.core.AbstractFragment
 import org.fs.component.media.R
 import org.fs.component.media.common.annotation.MediaType
@@ -112,6 +114,14 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
           viewPreviewLayout.removeAllViews()
           viewPreviewLayout.addView(videoViewPreview, lp)
           videoViewPreview.setVideoURI(Uri.fromFile(media.file))
+          videoViewPreview.setOnCompletionListener { mp ->
+            mp.seekTo(0)
+            mp.start()
+          }
+          videoViewPreview.setOnPreparedListener { mp ->
+            mp.setVolume(0f, 0f)
+            mp.start()
+          }
           videoViewPreview.start()
         }
         else -> throw IllegalArgumentException(
