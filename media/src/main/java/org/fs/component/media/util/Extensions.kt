@@ -16,6 +16,7 @@
 package org.fs.component.media.util
 
 import android.util.Size
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -28,6 +29,13 @@ operator fun Size.component1() = width
 operator fun Size.component2() = height
 
 operator fun CompositeDisposable.plusAssign(disposable: Disposable) { add(disposable) }
+
+fun Completable.async(): Completable = subscribeOn(Schedulers.io())
+  .observeOn(AndroidSchedulers.mainThread())
+
+fun Completable.async(view: ViewType?) = async()
+  .doOnSubscribe { view?.showProgress() }
+  .doOnComplete { view?.hideProgress() }
 
 fun <T> Observable<T>.async(): Observable<T> = subscribeOn(Schedulers.io())
   .observeOn(AndroidSchedulers.mainThread())

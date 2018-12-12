@@ -35,6 +35,7 @@ import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
+import org.fs.component.media.util.C.Companion.UI_THREAD_DELAY
 import org.fs.component.media.util.async
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.GalleryFragmentView
@@ -125,7 +126,7 @@ class GalleryFragmentPresenterImp @Inject constructor(
             // this will select first item at the very beginning
             ThreadManager.runOnUiThreadDelayed(Runnable {
               BusManager.send(MediaSelectedEvent(selected))
-            }, 250L) // should post it delayed
+            }, UI_THREAD_DELAY) // should post it delayed
           }
         }
       }, { error -> view.showError(error.toString()) })

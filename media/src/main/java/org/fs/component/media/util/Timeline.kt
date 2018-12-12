@@ -16,4 +16,4 @@
 
 package org.fs.component.media.util
 
-data class Timeline(val start: Int, val end: Int)
+data class Timeline(val start: Long, val end: Long)

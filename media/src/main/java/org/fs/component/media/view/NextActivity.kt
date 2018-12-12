@@ -15,18 +15,17 @@
  */
 package org.fs.component.media.view
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.VideoView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.view_next_activity.*
 import org.fs.architecture.core.AbstractActivity
@@ -49,6 +48,8 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   private val showOrHideProgress: (Boolean) -> Unit = { show ->
     viewProgress.isIndeterminate = show
     viewProgress.visibility = if (show) View.VISIBLE else View.GONE
+    // will be disabled when we showing progress
+    viewButtonNext.isEnabled = !show
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +70,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
 
     val lp = when(renderMode) {
       RENDER_FILL -> createFillLayoutParams(media)
-      else -> createFixLayoutParams()
+      else -> createFixLayoutParams(media)
     }
 
     when(media.type) {
@@ -117,18 +118,47 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     MEDIA_TYPE_IMAGE -> {
       val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
       val metrics = resources.displayMetrics
-      val w = Math.round(bitmap.width / metrics.density)
-      val h = Math.round(bitmap.height / metrics.density)
-      FrameLayout.LayoutParams(w, h).also {
+      val width = Math.round(bitmap.width / metrics.density)
+      val height = Math.round(bitmap.height / metrics.density)
+      FrameLayout.LayoutParams(width, height, Gravity.CENTER).also {
         bitmap.recycle()
       }
     }
-    else -> FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+    else -> FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
   }
 
-  override fun retrieveTimeline(): Timeline = Timeline(0, 0) // this will not provide what I want but
+  private fun createFixLayoutParams(media: Media): FrameLayout.LayoutParams = when(media.type) {
+    MEDIA_TYPE_VIDEO -> {
+      val retriever = MediaMetadataRetriever()
+      retriever.setDataSource(media.file.absolutePath)
+      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
+      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
+      val max = Math.max(width, height)
+      val wp = if (max == width) viewPreviewLayout.width else FrameLayout.LayoutParams.WRAP_CONTENT
+      val hp = if (max == height) viewPreviewLayout.height else FrameLayout.LayoutParams.WRAP_CONTENT
+      FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
+        retriever.release()
+      }
+    }
+    MEDIA_TYPE_IMAGE -> {
+      val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
+      val metrics = resources.displayMetrics
+      val width = Math.round(bitmap.width / metrics.density)
+      val height = Math.round(bitmap.height / metrics.density)
+      val max = Math.max(width, height)
+      val wp = if (max == width) viewPreviewLayout.width else FrameLayout.LayoutParams.WRAP_CONTENT
+      val hp = if (max == height) viewPreviewLayout.height else FrameLayout.LayoutParams.WRAP_CONTENT
+      FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
+        bitmap.recycle()
+      }
+    }
+    else -> FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
+  }
 
-  private fun createFixLayoutParams(): FrameLayout.LayoutParams = FrameLayout.LayoutParams(viewPreviewLayout.width, viewPreviewLayout.height, Gravity.CENTER)
+  // TODO change this
+  override fun retrieveTimeline(): Timeline = Timeline(1000L, 3000L) // this will not provide what I want but
+
+  override fun displayMetrics(): DisplayMetrics = resources.displayMetrics
 
   override fun retrieveSize(mediaType: Int): Size = when(mediaType) {
     MEDIA_TYPE_VIDEO -> Size(videoViewPreview.width, videoViewPreview.height)
@@ -136,4 +166,5 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     else -> Size(0, 0)
   }
   override fun retrieveXY(): Size = Size(viewXScrollLayout.scrollX, viewYScrollLayout.scrollY)
+  override fun previewSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
 }
