@@ -57,7 +57,7 @@ class NextActivityPresenterImp @Inject constructor(
   }
 
   private var media: Media = Media.EMPTY
-  private var renderMode = RENDER_FILL
+  private var renderMode = RENDER_FIX // this is better to have in first case
 
   private val disposeBag by lazy { CompositeDisposable() }
   private val ffmpeg by lazy { FFmpeg.getInstance(view.getContext()) }
@@ -106,7 +106,7 @@ class NextActivityPresenterImp @Inject constructor(
         .doOnNext {
           it.isSelected = !it.isSelected
         }
-        .map { if (it.isSelected) RENDER_FIX else RENDER_FILL }
+        .map { if (it.isSelected) RENDER_FILL else RENDER_FIX }
         .subscribe {
           renderMode = it // grab reference for future use
           view.render(media, renderMode)

@@ -128,12 +128,13 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     MEDIA_TYPE_VIDEO -> {
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
+      val metrics = resources.displayMetrics
       val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
       val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
       val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
       val max = Math.max(width, height)
-      val wp = if (max == width) viewPreviewLayout.width else Math.round(viewPreviewLayout.width * ratio)
-      val hp = if (max == height) viewPreviewLayout.height else Math.round(viewPreviewLayout.height * ratio)
+      val wp = if (max == width) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
+      val hp = if (max == height) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
       FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
         retriever.release()
       }
@@ -145,8 +146,8 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
       val height = Math.round(bitmap.height / metrics.density)
       val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
       val max = Math.max(width, height)
-      val wp = if (max == width) viewPreviewLayout.width else Math.round(viewPreviewLayout.width * ratio)
-      val hp = if (max == height) viewPreviewLayout.height else Math.round(viewPreviewLayout.height * ratio)
+      val wp = if (max == width) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
+      val hp = if (max == height) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
       FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
         bitmap.recycle()
       }
