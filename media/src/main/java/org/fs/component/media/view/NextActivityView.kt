@@ -20,12 +20,15 @@ import io.reactivex.Observable
 import org.fs.architecture.common.ViewType
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.Size
+import org.fs.component.media.util.Timeline
 
 interface NextActivityView: ViewType {
   fun setUp(media: Media, renderMode: Int)
   fun observeNext(): Observable<View>
   fun observeCancel(): Observable<View>
   fun observeChangeScale(): Observable<View>
-  fun retrieveSize(): Size
+  fun retrieveXY(): Size
+  fun retrieveTimeline(): Timeline
+  fun retrieveSize(mediaType: Int): Size
   fun render(media: Media, renderMode: Int)
 }

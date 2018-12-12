@@ -15,6 +15,7 @@
  */
 package org.fs.component.media.presenter
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
@@ -123,7 +124,7 @@ class NextActivityPresenterImp @Inject constructor(
       override fun onStart() = Unit
 
       override fun onSuccess() {
-        ffmpeg.execute(toScaleAndPad(media, view.retrieveSize()),
+        ffmpeg.execute(toScaleAndPad(media),
             object : FFmpegExecuteResponseHandler {
               override fun onFinish() = Unit
 
@@ -145,7 +146,7 @@ class NextActivityPresenterImp @Inject constructor(
     })
   }
 
-  private fun toScaleAndPad(media: Media, size: Size): Array<String> = arrayOf("-y",
+  private fun toScaleAndPad(media: Media): Array<String> = arrayOf("-y",
       "-i", media.file.absolutePath,
       "-ss", "10",
       "-vf", "scale=-1:720,pad=720:ih:(ow-iw)/2:color=white",
@@ -156,7 +157,7 @@ class NextActivityPresenterImp @Inject constructor(
       "-strict", "-2",
       toFile(media).absolutePath)
 
-  private fun toScaleAndCrop(media: Media, size: Size): Array<String> = arrayOf("-y",
+  private fun toScaleAndCrop(media: Media): Array<String> = arrayOf("-y",
       "-i", media.file.absolutePath,
       "-vf", "scale=-1:720,crop=iw:720",
       "-vcodec", "libx264",
@@ -167,8 +168,16 @@ class NextActivityPresenterImp @Inject constructor(
 
   private fun toScaleAndCrop(media: Media, renderMode: Int) = when(media.type) {
     MEDIA_TYPE_IMAGE -> when(renderMode) {
-      RENDER_FILL -> Unit
-      RENDER_FIX -> Unit
+      RENDER_FILL -> {
+        val (x, y) = view.retrieveXY()
+        val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)
+        // TODO continue
+      }
+      RENDER_FIX -> {
+        val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)
+        val max = Math.max(w, h) // we retrieve max value among those what we receive
+        // TODO do it with task
+      }
       else -> Unit
     }
     MEDIA_TYPE_VIDEO -> when(renderMode) {

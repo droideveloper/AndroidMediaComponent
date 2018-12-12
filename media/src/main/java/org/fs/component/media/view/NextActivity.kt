@@ -37,6 +37,7 @@ import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.Size
+import org.fs.component.media.util.Timeline
 import org.fs.rx.extensions.util.clicks
 
 class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView {
@@ -125,7 +126,14 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     else -> FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
   }
 
+  override fun retrieveTimeline(): Timeline = Timeline(0, 0) // this will not provide what I want but
+
   private fun createFixLayoutParams(): FrameLayout.LayoutParams = FrameLayout.LayoutParams(viewPreviewLayout.width, viewPreviewLayout.height, Gravity.CENTER)
 
-  override fun retrieveSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
+  override fun retrieveSize(mediaType: Int): Size = when(mediaType) {
+    MEDIA_TYPE_VIDEO -> Size(videoViewPreview.width, videoViewPreview.height)
+    MEDIA_TYPE_IMAGE -> Size(imageViewPreview.width, imageViewPreview.height)
+    else -> Size(0, 0)
+  }
+  override fun retrieveXY(): Size = Size(viewXScrollLayout.scrollX, viewYScrollLayout.scrollY)
 }
