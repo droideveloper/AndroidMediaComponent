@@ -36,5 +36,7 @@ sealed class C {
 
     const val RENDER_FILL = 0x01
     const val RENDER_FIX  = 0x02
+
+    const val UI_THREAD_DELAY = 250L
   }
 }

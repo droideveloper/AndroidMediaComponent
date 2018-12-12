@@ -15,6 +15,7 @@
  */
 package org.fs.component.media.view
 
+import android.util.DisplayMetrics
 import android.view.View
 import io.reactivex.Observable
 import org.fs.architecture.common.ViewType
@@ -24,10 +25,12 @@ import org.fs.component.media.util.Timeline
 
 interface NextActivityView: ViewType {
   fun setUp(media: Media, renderMode: Int)
+  fun displayMetrics(): DisplayMetrics
   fun observeNext(): Observable<View>
   fun observeCancel(): Observable<View>
   fun observeChangeScale(): Observable<View>
   fun retrieveXY(): Size
+  fun previewSize(): Size
   fun retrieveTimeline(): Timeline
   fun retrieveSize(mediaType: Int): Size
   fun render(media: Media, renderMode: Int)

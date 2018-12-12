@@ -16,15 +16,23 @@
 package org.fs.component.media.presenter
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.util.TimeUtils
+import com.bumptech.glide.util.ByteBufferUtil.toFile
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.FFmpegLoadBinaryResponseHandler
+import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForActivity
 import org.fs.architecture.util.EMPTY
+import org.fs.component.media.common.FFmpegBinaryCallback
+import org.fs.component.media.common.FFmpegCommandCallback
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
@@ -32,9 +40,12 @@ import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
 import org.fs.component.media.util.Size
+import org.fs.component.media.util.async
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
 import java.io.File
+import java.io.FileOutputStream
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @ForActivity
@@ -49,6 +60,8 @@ class NextActivityPresenterImp @Inject constructor(
   private var renderMode = RENDER_FILL
 
   private val disposeBag by lazy { CompositeDisposable() }
+  private val ffmpeg by lazy { FFmpeg.getInstance(view.getContext()) }
+  private var supportFfmpeg = false
   private val directory by lazy { File(view.getContext()?.filesDir, "modified_file") }
 
   override fun restoreState(restore: Bundle?) {
@@ -77,17 +90,17 @@ class NextActivityPresenterImp @Inject constructor(
         }
       }
     }
+    // load ffmpeg binaries
+    ffmpeg.loadBinary(FFmpegBinaryCallback(success = {
+      supportFfmpeg = true
+    }))
   }
 
   override fun onStart() {
     if (view.isAvailable()) {
+      // much better approach
       disposeBag += view.observeNext()
-        .subscribe { when(media.type) {
-            C.MEDIA_TYPE_VIDEO -> cropVideo(media)
-            C.MEDIA_TYPE_IMAGE -> cropImage(media)
-            else -> Unit
-          }
-        }
+        .subscribe {scaleOrCropAndPad(media, renderMode) }
 
       disposeBag += view.observeChangeScale()
         .doOnNext {
@@ -112,92 +125,110 @@ class NextActivityPresenterImp @Inject constructor(
     }
   }
 
-  private fun cropImage(media: Media) {
-    // TODO do crop
-  }
+  private fun scaleOrCropAndPad(media: Media, renderMode: Int) = when(media.type) {
+    MEDIA_TYPE_IMAGE -> {
+      val (x, y) = view.retrieveXY()
+      val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)
 
-  private fun cropVideo(media: Media) {
-    val ffmpeg = FFmpeg.getInstance(view.getContext())
-    ffmpeg.loadBinary(object: FFmpegLoadBinaryResponseHandler {
-      override fun onFinish() = Unit
-      override fun onFailure() = Unit
-      override fun onStart() = Unit
-
-      override fun onSuccess() {
-        ffmpeg.execute(toScaleAndPad(media),
-            object : FFmpegExecuteResponseHandler {
-              override fun onFinish() = Unit
-
-              override fun onSuccess(message: String?) {
-                Log.e("FFMPEG-Success", message ?: String.EMPTY)
-              }
-
-              override fun onFailure(message: String?) {
-                Log.e("FFMPEG-Error", message ?: String.EMPTY)
-              }
-
-              override fun onProgress(message: String?) {
-                Log.e("FFMPEG-Progress", message ?: String.EMPTY)
-              }
-
-              override fun onStart() = Unit
-            })
+      when(renderMode) {
+        RENDER_FILL -> {
+          disposeBag += Completable.fromAction {
+            val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
+            val displayMetrics = view.displayMetrics()
+            val dx = Math.round(displayMetrics.density * x)
+            val dy = Math.round(displayMetrics.density * y)
+            val cropped = Bitmap.createBitmap(bitmap, dx, dy, bitmap.width - dx, bitmap.height - dy)
+            bitmap.recycle()
+            val output = FileOutputStream(toFile(media).absolutePath)
+            cropped.compress(Bitmap.CompressFormat.JPEG, 100, output)
+            output.close()
+            cropped.recycle()
+          }.async(view)
+           .subscribe()
+        }
+        RENDER_FIX -> {
+          disposeBag += Completable.fromAction {
+            val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
+            val scaled = Bitmap.createScaledBitmap(bitmap, w, h, false)
+            bitmap.recycle()
+            val max = Math.max(w, h)
+            val bmp = Bitmap.createBitmap(max, max, scaled.config)
+            val canvas = Canvas(bmp)
+            canvas.drawColor(Color.BLACK)
+            val left = (max - w) / 2f
+            val top = (max - h) / 2f
+            canvas.drawBitmap(scaled, left, top, null)
+            scaled.recycle()
+            val output = FileOutputStream(toFile(media).absolutePath)
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, output)
+            output.close()
+            bmp.recycle()
+          }.async(view)
+           .subscribe()
+        }
+        else -> Unit
       }
-    })
-  }
+    }
+    MEDIA_TYPE_VIDEO -> {
+      val (x, y) = view.retrieveXY()
+      val (w, h) = view.retrieveSize(MEDIA_TYPE_VIDEO)
+      val (pw, ph) = view.previewSize()
+      val timeline = view.retrieveTimeline()
+      val max = Math.max(w, h)
 
-  private fun toScaleAndPad(media: Media): Array<String> = arrayOf("-y",
-      "-i", media.file.absolutePath,
-      "-ss", "10",
-      "-vf", "scale=-1:720,pad=720:ih:(ow-iw)/2:color=white",
-      "-t", "10",
-      "-vcodec", "libx264",
-      "-threads", "5",
-      "-preset", "ultrafast",
-      "-strict", "-2",
-      toFile(media).absolutePath)
+      val command = ArrayList<String>()
+      command.add("-y")
+      command.add("-i")
+      command.add(media.file.absolutePath)
+      command.add("-ss") // start position of video crop by time
+      command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.start).toString()) // start
 
-  private fun toScaleAndCrop(media: Media): Array<String> = arrayOf("-y",
-      "-i", media.file.absolutePath,
-      "-vf", "scale=-1:720,crop=iw:720",
-      "-vcodec", "libx264",
-      "-threads", "5",
-      "-preset", "ultrafast",
-      "-strict", "-2",
-      toFile(media).absolutePath)
+      when(renderMode) {
+        RENDER_FILL -> {
+          command.add("-vf")
+          command.add("crop=$pw:$ph:$x:$y")
+          command.add("-t")
+          command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.end).toString())
+          command.add("-vcodec")
+          command.add("libx264")
+          command.add("-threads")
+          command.add("2")
+          command.add("-preset")
+          command.add("ultrafast")
+          command.add(toFile(media).absolutePath)
 
-  private fun toScaleAndCrop(media: Media, renderMode: Int) = when(media.type) {
-    MEDIA_TYPE_IMAGE -> when(renderMode) {
-      RENDER_FILL -> {
-        val (x, y) = view.retrieveXY()
-        val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)
-        // TODO continue
+          ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
+            view.showProgress()
+          }, success =  {
+            view.hideProgress()
+          }))
+        }
+        RENDER_FIX -> {
+          val vf = when(max) {
+            w -> "scale=$pw:-1,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
+            h -> "scale=-1:$ph,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
+            else -> String.EMPTY
+          }
+          command.add("-vf")
+          command.add(vf)
+          command.add("-t")
+          command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.end).toString())
+          command.add("-vcodec")
+          command.add("libx264")
+          command.add("-threads")
+          command.add("2")
+          command.add("-preset")
+          command.add("ultrafast")
+          command.add(toFile(media).absolutePath)
+
+          ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
+            view.showProgress()
+          }, success =  {
+            view.hideProgress()
+          }))
+        }
+        else -> Unit
       }
-      RENDER_FIX -> {
-        val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)
-        val max = Math.max(w, h) // we retrieve max value among those what we receive
-        // TODO do it with task
-      }
-      else -> Unit
-    }
-    MEDIA_TYPE_VIDEO -> when(renderMode) {
-      RENDER_FILL -> Unit
-      RENDER_FIX -> Unit
-      else -> Unit
-    }
-    else -> Unit // Do not
-  }
-
-  private fun toScaleAndPad(media: Media, renderMode: Int) = when(media.type) {
-    MEDIA_TYPE_IMAGE -> when(renderMode) {
-      RENDER_FILL -> Unit
-      RENDER_FIX -> Unit
-      else -> Unit
-    }
-    MEDIA_TYPE_VIDEO -> when(renderMode) {
-      RENDER_FILL -> Unit
-      RENDER_FIX -> Unit
-      else -> Unit
     }
     else -> Unit
   }
