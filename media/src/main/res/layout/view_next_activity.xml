@@ -46,11 +46,13 @@
     android:layout_height="match_parent">
 
     <HorizontalScrollView
+      android:id="@+id/viewXScrollLayout"
       android:layout_gravity="center"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content">
 
       <ScrollView
+        android:id="@+id/viewYScrollLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 

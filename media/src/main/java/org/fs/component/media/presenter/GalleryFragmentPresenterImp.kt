@@ -115,12 +115,14 @@ class GalleryFragmentPresenterImp @Inject constructor(
     disposeBag += dataSource()
       .flatMap { s -> Observable.fromIterable(s) }
       .toSortedList(CompareMediaByDateTaken.COMPARE_MEDIA_BY_DATE_TAKEN)
+      .map { it.reversed() }
       .async(view)
       .subscribe({ data ->
         if (view.isAvailable()) {
           if (data.isNotEmpty()) {
             dataSet.addAll(data)
             val selected = data.first()
+            // this will select first item at the very beginning
             ThreadManager.runOnUiThreadDelayed(Runnable {
               BusManager.send(MediaSelectedEvent(selected))
             }, 250L) // should post it delayed
