@@ -109,18 +109,15 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     MEDIA_TYPE_VIDEO -> {
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
-      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
-      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
+      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
+      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
       FrameLayout.LayoutParams(width, height, Gravity.CENTER).also {
         retriever.release()
       }
     }
     MEDIA_TYPE_IMAGE -> {
       val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
-      val metrics = resources.displayMetrics
-      val width = Math.round(bitmap.width / metrics.density)
-      val height = Math.round(bitmap.height / metrics.density)
-      FrameLayout.LayoutParams(width, height, Gravity.CENTER).also {
+      FrameLayout.LayoutParams(bitmap.width, bitmap.height, Gravity.CENTER).also {
         bitmap.recycle()
       }
     }
@@ -131,11 +128,12 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     MEDIA_TYPE_VIDEO -> {
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
-      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
-      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toIntOrNull() ?: FrameLayout.LayoutParams.WRAP_CONTENT
+      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
+      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+      val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
       val max = Math.max(width, height)
-      val wp = if (max == width) viewPreviewLayout.width else FrameLayout.LayoutParams.WRAP_CONTENT
-      val hp = if (max == height) viewPreviewLayout.height else FrameLayout.LayoutParams.WRAP_CONTENT
+      val wp = if (max == width) viewPreviewLayout.width else Math.round(viewPreviewLayout.width * ratio)
+      val hp = if (max == height) viewPreviewLayout.height else Math.round(viewPreviewLayout.height * ratio)
       FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
         retriever.release()
       }
@@ -145,9 +143,10 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
       val metrics = resources.displayMetrics
       val width = Math.round(bitmap.width / metrics.density)
       val height = Math.round(bitmap.height / metrics.density)
+      val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
       val max = Math.max(width, height)
-      val wp = if (max == width) viewPreviewLayout.width else FrameLayout.LayoutParams.WRAP_CONTENT
-      val hp = if (max == height) viewPreviewLayout.height else FrameLayout.LayoutParams.WRAP_CONTENT
+      val wp = if (max == width) viewPreviewLayout.width else Math.round(viewPreviewLayout.width * ratio)
+      val hp = if (max == height) viewPreviewLayout.height else Math.round(viewPreviewLayout.height * ratio)
       FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
         bitmap.recycle()
       }
