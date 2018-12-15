@@ -38,5 +38,12 @@ sealed class C {
     const val RENDER_FIX  = 0x02
 
     const val UI_THREAD_DELAY = 250L
+
+    const val MIME_GIF = "image/gif"
+
+    const val ROTATION_90 = 90
+    const val ROTATION_270 = 270
+
+    const val TOUCH_STEP = 3
   }
 }

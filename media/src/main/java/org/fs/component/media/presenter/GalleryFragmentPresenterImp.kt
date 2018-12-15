@@ -88,6 +88,7 @@ class GalleryFragmentPresenterImp @Inject constructor(
         when(evt) {
           is MediaSelectedEvent -> view.render(evt.media).also {
             media = evt.media
+            view.emulateTouch()
           } // should not come empty here but just to be safe
           is NextSelectedEvent -> view.startActivity(Intent(view.getContext(), NextActivity::class.java).apply {
             putExtra(NextActivityPresenterImp.BUNDLE_ARGS_MEDIA, media)

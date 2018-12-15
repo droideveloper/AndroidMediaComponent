@@ -19,20 +19,19 @@ import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.support.v4.content.res.ResourcesCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.VideoView
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.view_gallery_fragment.*
 import kotlinx.android.synthetic.main.view_video_item.*
+import org.fs.architecture.common.ThreadManager
 import org.fs.architecture.core.AbstractFragment
 import org.fs.component.media.R
 import org.fs.component.media.common.annotation.MediaType
@@ -41,6 +40,10 @@ import org.fs.component.media.presenter.GalleryFragmentPresenter
 import org.fs.component.media.presenter.GalleryFragmentPresenterImp
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
+import org.fs.component.media.util.C.Companion.TOUCH_STEP
+import org.fs.component.media.util.C.Companion.UI_THREAD_DELAY
+import org.fs.component.media.util.cx
+import org.fs.component.media.util.cy
 import org.fs.component.media.view.adapter.MediaAdapter
 import javax.inject.Inject
 
@@ -127,6 +130,44 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
         else -> throw IllegalArgumentException(
             "we do not know why this is error for media type ${media.type}")
       }
+    }
+  }
+
+  override fun emulateTouch() {
+    if (mediaAdapter.itemCount != 0) {
+      viewRecycler.scrollToPosition(0)
+      // we simulate touch event in here with this concept
+
+      val startX = viewCoordinatorLayout.cx()
+      val startY = Math.round(viewCoordinatorLayout.cy())
+      val endY = Math.round(viewCoordinatorLayout.cy() * 1.5f)
+
+      // down
+      val eventDown = MotionEvent.obtain(SystemClock.uptimeMillis(),
+          SystemClock.uptimeMillis(),
+          MotionEvent.ACTION_DOWN,
+          startX, startY.toFloat(), 0)
+      viewCoordinatorLayout.dispatchTouchEvent(eventDown)
+      eventDown.recycle()
+
+      // move loop
+      (startY..endY).step(TOUCH_STEP).forEach { y ->
+        // move start
+        val eventMove = MotionEvent.obtain(SystemClock.uptimeMillis(),
+            SystemClock.uptimeMillis(),
+            MotionEvent.ACTION_MOVE,
+            startX, y.toFloat(), 0)
+        viewCoordinatorLayout.dispatchTouchEvent(eventMove)
+        eventMove.recycle()
+      }
+
+      // up
+      val eventUp = MotionEvent.obtain(SystemClock.uptimeMillis(),
+          SystemClock.uptimeMillis(),
+          MotionEvent.ACTION_UP,
+          startX, endY.toFloat(), 0)
+      viewCoordinatorLayout.dispatchTouchEvent(eventUp)
+      eventUp.recycle()
     }
   }
 
