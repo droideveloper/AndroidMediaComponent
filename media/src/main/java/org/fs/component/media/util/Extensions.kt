@@ -16,6 +16,7 @@
 package org.fs.component.media.util
 
 import android.util.Size
+import android.view.ViewGroup
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -46,3 +47,6 @@ fun <T> Single<T>.async(): Single<T> = subscribeOn(Schedulers.io())
 fun <T> Single<T>.async(view: ViewType?): Single<T> = async()
   .doOnSubscribe { view?.showProgress() }
   .doFinally { view?.hideProgress() }
+
+fun ViewGroup.cx(): Float = width / 2f
+fun ViewGroup.cy(): Float = height / 2f

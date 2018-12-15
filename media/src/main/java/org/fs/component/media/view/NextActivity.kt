@@ -35,6 +35,8 @@ import org.fs.component.media.presenter.NextActivityPresenter
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.RENDER_FILL
+import org.fs.component.media.util.C.Companion.ROTATION_270
+import org.fs.component.media.util.C.Companion.ROTATION_90
 import org.fs.component.media.util.Size
 import org.fs.component.media.util.Timeline
 import org.fs.rx.extensions.util.clicks
@@ -109,8 +111,15 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     MEDIA_TYPE_VIDEO -> {
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
-      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
-      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+      val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION).toInt()
+      val width = when(rotation) {
+        ROTATION_90, ROTATION_270 -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+        else -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
+      }
+      val height = when(rotation) {
+        ROTATION_90, ROTATION_270 -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
+        else -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+      }
       FrameLayout.LayoutParams(width, height, Gravity.CENTER).also {
         retriever.release()
       }
@@ -129,8 +138,15 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
       val metrics = resources.displayMetrics
-      val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
-      val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+      val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION).toInt()
+      val width = when(rotation) {
+        ROTATION_90, ROTATION_270 -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+        else -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
+      }
+      val height = when(rotation) {
+        ROTATION_90, ROTATION_270 -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH).toInt()
+        else -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT).toInt()
+      }
       val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
       val max = Math.max(width, height)
       val wp = if (max == width) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
@@ -156,7 +172,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   }
 
   // TODO change this
-  override fun retrieveTimeline(): Timeline = Timeline(1000L, 3000L) // this will not provide what I want but
+  override fun retrieveTimeline(): Timeline = Timeline(1000L, 5000L) // this will not provide what I want but
 
   override fun displayMetrics(): DisplayMetrics = resources.displayMetrics
 

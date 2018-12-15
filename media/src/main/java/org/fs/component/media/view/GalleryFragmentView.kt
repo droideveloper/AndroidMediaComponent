@@ -20,5 +20,6 @@ import org.fs.component.media.model.entity.Media
 
 interface GalleryFragmentView : ViewType {
   fun setUp()
+  fun emulateTouch()
   fun render(media: Media)
 }
