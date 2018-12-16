@@ -39,6 +39,8 @@ dependencies {
   implementation "org.fs.architecture:mvp:$ANDROID_ARCHITECTURE_VERSION"
   implementation "org.fs.rx.extensions:uibinding:$ANDROID_UIBINDING_VERSION"
 
+  api "org.fs.component:gallery:$ANDROID_GALLERY_COMPONENT"
+
   implementation "com.writingminds:FFmpegAndroid:$FFMPEG_VERSION"
 
   implementation "com.github.bumptech.glide:glide:$GLIDE_VERSION"

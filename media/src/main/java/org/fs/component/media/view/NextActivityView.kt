@@ -19,7 +19,7 @@ import android.util.DisplayMetrics
 import android.view.View
 import io.reactivex.Observable
 import org.fs.architecture.common.ViewType
-import org.fs.component.media.model.entity.Media
+import org.fs.component.gallery.model.entity.Media
 import org.fs.component.media.util.Size
 import org.fs.component.media.util.Timeline
 

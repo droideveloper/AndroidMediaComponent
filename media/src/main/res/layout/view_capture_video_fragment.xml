@@ -23,7 +23,7 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent">
 
-  <org.fs.component.media.widget.AspectFrameLayout
+  <org.fs.component.gallery.widget.SquareFrameLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -60,7 +60,7 @@
       android:background="@android:color/transparent"
       android:src="@drawable/state_flash" />
 
-  </org.fs.component.media.widget.AspectFrameLayout>
+  </org.fs.component.gallery.widget.SquareFrameLayout>
 
   <FrameLayout
     android:layout_width="match_parent"
@@ -75,11 +75,10 @@
       android:background="@android:color/transparent"
       android:src="@drawable/state_capture_video" />
 
-    <org.fs.component.media.widget.SelectableImageView
+    <org.fs.component.gallery.widget.FrameImageView
       android:id="@+id/viewPreview"
       android:layout_gravity="end|center_vertical"
       android:layout_marginEnd="8dip"
-      tools:src="@drawable/ic_video_place_holder"
       android:layout_width="72dip"
       android:layout_height="72dip" />
 

@@ -15,25 +15,28 @@
  */
 package org.fs.component.media.presenter
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.BusManager
 import org.fs.architecture.common.scope.ForActivity
+import org.fs.component.gallery.model.event.NextSelectedEvent
+import org.fs.component.gallery.presenter.GalleryFragmentPresenterImp
+import org.fs.component.gallery.util.C.Companion.COMPONENT_PICK_ALL
+import org.fs.component.gallery.util.C.Companion.COMPONENT_PICK_IMAGE
+import org.fs.component.gallery.util.C.Companion.COMPONENT_PICK_VIDEO
+import org.fs.component.gallery.view.GalleryFragment
 import org.fs.component.media.R
-import org.fs.component.media.model.event.NextSelectedEvent
 import org.fs.component.media.util.C.Companion.COMPONENT_ALL
 import org.fs.component.media.util.C.Companion.COMPONENT_PHOTO
 import org.fs.component.media.util.C.Companion.COMPONENT_VIDEO
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_ALL
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CapturePhotoFragment
 import org.fs.component.media.view.CaptureVideoFragment
 import org.fs.component.media.view.ComponentActivityView
-import org.fs.component.media.view.GalleryFragment
+import org.fs.component.media.view.NextActivity
 import javax.inject.Inject
 
 @ForActivity
@@ -74,7 +77,7 @@ class ComponentActivityPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += view.observeNext()
-        .map { NextSelectedEvent() } // TODO go for next activity and wait
+        .map { NextSelectedEvent(Intent(view.getContext(), NextActivity::class.java)) }
         .subscribe(BusManager.Companion::send)
 
       disposeBag += view.observeCancel()
@@ -114,7 +117,11 @@ class ComponentActivityPresenterImp @Inject constructor(
   }
 
   private fun fragmentFor(id: Int): Fragment = when(id) {
-    R.id.gallery -> GalleryFragment.newFragment(mediaType())
+    R.id.gallery -> GalleryFragment().apply {
+      arguments = Bundle().apply {
+        putInt(GalleryFragmentPresenterImp.BUNDLE_ARGS_COMPONENT, mediaType())
+      }
+    }
     R.id.photo -> CapturePhotoFragment()
     R.id.video -> CaptureVideoFragment()
     else -> throw IllegalStateException("component is not known $component")
@@ -128,9 +135,9 @@ class ComponentActivityPresenterImp @Inject constructor(
   }
 
   private fun mediaType(): Int = when(component) {
-    COMPONENT_ALL -> MEDIA_TYPE_ALL
-    COMPONENT_VIDEO -> MEDIA_TYPE_VIDEO
-    COMPONENT_PHOTO -> MEDIA_TYPE_IMAGE
+    COMPONENT_ALL -> COMPONENT_PICK_ALL
+    COMPONENT_VIDEO -> COMPONENT_PICK_VIDEO
+    COMPONENT_PHOTO -> COMPONENT_PICK_IMAGE
     else -> throw IllegalStateException("component is not known $component")
   }
 }

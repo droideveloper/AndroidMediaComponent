@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
- * Media Component Copyright (C) 2018 Fatih.
- *  
+ * Gallery Component Android Kotlin Copyright (C) 2018 Fatih, Open Source.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fs.component.media.repository
+ -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+  android:duration="200">
 
-abstract class AbstractRepository
+  <translate android:fromXDelta="100%p"
+    android:fromYDelta="0%p"
+    android:toYDelta="0%p"
+    android:toXDelta="0%p" />
+
+</set>

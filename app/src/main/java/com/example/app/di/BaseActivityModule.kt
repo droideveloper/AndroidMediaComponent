@@ -19,6 +19,14 @@ package com.example.app.di
 import dagger.Module
 import dagger.Provides
 import org.fs.architecture.common.scope.ForActivity
+import org.fs.architecture.util.ObservableList
+import org.fs.component.gallery.model.entity.Media
+import org.fs.component.gallery.presenter.GalleryActivityPresenter
+import org.fs.component.gallery.presenter.GalleryActivityPresenterImp
+import org.fs.component.gallery.presenter.GalleryFragmentPresenter
+import org.fs.component.gallery.presenter.GalleryFragmentPresenterImp
+import org.fs.component.gallery.view.GalleryActivity
+import org.fs.component.gallery.view.GalleryActivityView
 import org.fs.component.media.presenter.ComponentActivityPresenter
 import org.fs.component.media.presenter.ComponentActivityPresenterImp
 import org.fs.component.media.presenter.NextActivityPresenter
@@ -36,4 +44,8 @@ class BaseActivityModule {
 
   @ForActivity @Provides fun provideNextActivityView(activity: NextActivity): NextActivityView = activity
   @ForActivity @Provides fun provideNextActivityPresenter(presenter: NextActivityPresenterImp): NextActivityPresenter = presenter
+
+  @ForActivity @Provides fun provideGalleryActivityView(activity: GalleryActivity): GalleryActivityView = activity
+  @ForActivity @Provides fun provideGalleryActivityPresenter(presenter: GalleryActivityPresenterImp): GalleryActivityPresenter = presenter
+  @ForActivity @Provides fun provideMediaDataSet(): ObservableList<Media> = ObservableList()
 }

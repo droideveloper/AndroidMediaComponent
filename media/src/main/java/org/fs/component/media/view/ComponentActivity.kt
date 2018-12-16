@@ -38,6 +38,7 @@ class ComponentActivity: AbstractActivity<ComponentActivityPresenter>(), Compone
   private val factory by lazy { LayoutInflater.from(this) }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    overridePendingTransition(R.anim.translate_bottom_in, R.anim.scale_out)
     super.onCreate(savedInstanceState)
     setContentView(R.layout.view_component_activity)
 
@@ -73,5 +74,10 @@ class ComponentActivity: AbstractActivity<ComponentActivityPresenter>(), Compone
       customView = view
       viewTabLayout.addTab(this)
     }
+  }
+
+  override fun finish() {
+    super.finish()
+    overridePendingTransition(R.anim.scale_in, R.anim.translate_bottom_out)
   }
 }

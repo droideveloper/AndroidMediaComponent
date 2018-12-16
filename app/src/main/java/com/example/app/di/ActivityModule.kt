@@ -19,9 +19,9 @@ package com.example.app.di
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 import org.fs.architecture.common.scope.ForFragment
+import org.fs.component.gallery.view.GalleryFragment
 import org.fs.component.media.view.CapturePhotoFragment
 import org.fs.component.media.view.CaptureVideoFragment
-import org.fs.component.media.view.GalleryFragment
 
 @Module
 abstract class ActivityModule {
