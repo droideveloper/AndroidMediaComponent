@@ -78,8 +78,6 @@ class CaptureVideoFragment : AbstractFragment<CaptureVideoFragmentPresenter>(), 
   }
 
   override fun observeToggleFlash(): Observable<View> = viewButtonFlash.clicks()
-
   override fun observeChangeCamera(): Observable<View> = viewButtonCamera.clicks()
-
   override fun observeStartOrStopRecord(): Observable<View> = viewButtonCapture.clicks()
 }
