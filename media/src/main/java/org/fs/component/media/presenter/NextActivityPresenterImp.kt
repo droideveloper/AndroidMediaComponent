@@ -94,6 +94,10 @@ class NextActivityPresenterImp @Inject constructor(
     // load ffmpeg binaries
     ffmpeg.loadBinary(FFmpegBinaryCallback(success = {
       supportFfmpeg = true
+    }, error = {
+      if (view.isAvailable()) {
+        view.showError("We can not load binaries for video processing")
+      }
     }))
   }
 
@@ -158,11 +162,18 @@ class NextActivityPresenterImp @Inject constructor(
         command.add(toFileMp4(media).absolutePath)
 
         ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
-          view.showProgress()
+          if (view.isAvailable()) {
+            view.showProgress()
+          }
         }, success =  {
-          view.hideProgress()
-        }, progress = {
-          Log.e(NextActivityPresenterImp::class.java.simpleName, it ?: String.EMPTY)
+          if (view.isAvailable()) {
+            view.hideProgress()
+          }
+        }, error = {
+          if (view.isAvailable()) {
+            view.showError(it ?: String.EMPTY)
+            view.hideProgress()
+          }
         }))
       } else {
         when (renderMode) {
@@ -184,20 +195,15 @@ class NextActivityPresenterImp @Inject constructor(
           RENDER_FIX -> {
             disposeBag += Completable.fromAction {
               val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
-              val scaled = Bitmap.createScaledBitmap(bitmap, w, h, false)
+              val r = if(bitmap.height > bitmap.width) bitmap.width / bitmap.height.toFloat() else bitmap.height / bitmap.width.toFloat()
+              val dw = Math.round(pw * r)
+              val dh = Math.round(ph * r)
+              val scaled = Bitmap.createScaledBitmap(bitmap, dw, dh, false)
               bitmap.recycle()
-              val max = Math.max(w, h)
-              val bmp = Bitmap.createBitmap(max, max, scaled.config)
-              val canvas = Canvas(bmp)
-              canvas.drawColor(Color.BLACK)
-              val left = (max - w) / 2f
-              val top = (max - h) / 2f
-              canvas.drawBitmap(scaled, left, top, null)
-              scaled.recycle()
               val output = FileOutputStream(toFile(media).absolutePath)
-              bmp.compress(Bitmap.CompressFormat.JPEG, 100, output)
+              scaled.compress(Bitmap.CompressFormat.JPEG, 100, output)
               output.close()
-              bmp.recycle()
+              scaled.recycle()
             }.async(view)
              .subscribe()
           }
@@ -246,11 +252,18 @@ class NextActivityPresenterImp @Inject constructor(
           command.add("ultrafast")
           command.add(toFile(media).absolutePath)
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
-            view.showProgress()
+            if (view.isAvailable()) {
+              view.showProgress()
+            }
           }, success =  {
-            view.hideProgress()
-          }, progress = {
-            Log.e(NextActivityPresenterImp::class.java.simpleName, it ?: String.EMPTY)
+            if (view.isAvailable()) {
+              view.hideProgress()
+            }
+          }, error = {
+            if (view.isAvailable()) {
+              view.showError(it ?: String.EMPTY)
+              view.hideProgress()
+            }
           }))
         }
         // "[0:v]scale=-1:iw,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=w=ih"
@@ -291,11 +304,18 @@ class NextActivityPresenterImp @Inject constructor(
           command.add(toFile(media).absolutePath)
 
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
-            view.showProgress()
+            if (view.isAvailable()) {
+              view.showProgress()
+            }
           }, success =  {
-            view.hideProgress()
-          }, progress = {
-            Log.e(NextActivityPresenterImp::class.java.simpleName, it ?: String.EMPTY)
+            if (view.isAvailable()) {
+              view.hideProgress()
+            }
+          }, error = {
+            if (view.isAvailable()) {
+              view.showError(it ?: String.EMPTY)
+              view.hideProgress()
+            }
           }))
         }
         else -> Unit
