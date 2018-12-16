@@ -20,7 +20,11 @@ import dagger.Module
 import dagger.Provides
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.architecture.util.ObservableList
-import org.fs.component.media.model.entity.Media
+import org.fs.component.gallery.model.entity.Media
+import org.fs.component.gallery.presenter.GalleryFragmentPresenter
+import org.fs.component.gallery.presenter.GalleryFragmentPresenterImp
+import org.fs.component.gallery.view.GalleryFragment
+import org.fs.component.gallery.view.GalleryFragmentView
 import org.fs.component.media.presenter.*
 import org.fs.component.media.view.*
 
@@ -35,5 +39,4 @@ class BaseFragmentModule {
 
   @ForFragment @Provides fun providesGalleryFragmentView(fragment: GalleryFragment): GalleryFragmentView = fragment
   @ForFragment @Provides fun providesGalleryFragmentPresenter(presenter: GalleryFragmentPresenterImp): GalleryFragmentPresenter = presenter
-  @ForFragment @Provides fun providesGalleryDateSet(): ObservableList<Media> = ObservableList()
 }

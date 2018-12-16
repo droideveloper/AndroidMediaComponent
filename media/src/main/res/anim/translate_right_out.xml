@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
- * Playz Android Kotlin Copyright (C) 2018 Fatih, Playz.lol.
+ * Gallery Component Android Kotlin Copyright (C) 2018 Fatih, Open Source.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
  * limitations under the License.
  */
  -->
-<layer-list
-  xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:gravity="fill">
-    <shape android:shape="rectangle">
-      <size android:height="144dip"
-        android:width="144dip" />
-      <solid android:color="@android:color/darker_gray" />
-    </shape>
-  </item>
-  <item android:gravity="center"
-    android:drawable="@drawable/ic_image_type" />
-</layer-list>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+  android:duration="200">
+
+  <translate android:fromXDelta="0%p"
+    android:fromYDelta="0%p"
+    android:toXDelta="100%p"
+    android:toYDelta="0%p" />
+
+</set>

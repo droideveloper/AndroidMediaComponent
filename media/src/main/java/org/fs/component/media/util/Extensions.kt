@@ -47,6 +47,3 @@ fun <T> Single<T>.async(): Single<T> = subscribeOn(Schedulers.io())
 fun <T> Single<T>.async(view: ViewType?): Single<T> = async()
   .doOnSubscribe { view?.showProgress() }
   .doFinally { view?.hideProgress() }
-
-fun ViewGroup.cx(): Float = width / 2f
-fun ViewGroup.cy(): Float = height / 2f

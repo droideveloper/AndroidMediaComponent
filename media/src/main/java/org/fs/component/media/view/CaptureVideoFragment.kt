@@ -75,6 +75,7 @@ class CaptureVideoFragment : AbstractFragment<CaptureVideoFragmentPresenter>(), 
       viewPreview.setImageBitmap(thumb)
       viewPreview.isSelected = true
     }
+    retriever.release()
   }
 
   override fun observeToggleFlash(): Observable<View> = viewButtonFlash.clicks()

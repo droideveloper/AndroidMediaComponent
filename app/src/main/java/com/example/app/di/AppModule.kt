@@ -23,6 +23,10 @@ import dagger.Binds
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 import org.fs.architecture.common.scope.ForActivity
+import org.fs.component.gallery.repository.GalleryImageRepository
+import org.fs.component.gallery.repository.GalleryImageRespoitoryImp
+import org.fs.component.gallery.repository.GalleryVideoRepository
+import org.fs.component.gallery.repository.GalleryVideoRepositoryImp
 import org.fs.component.media.view.ComponentActivity
 import org.fs.component.media.view.NextActivity
 import javax.inject.Singleton
@@ -32,6 +36,9 @@ abstract class AppModule {
 
   @Singleton @Binds abstract fun bindApp(app: App): Application
   @Singleton @Binds abstract fun bindContext(app: Application): Context
+
+  @Singleton @Binds abstract fun bindGalleryImageRepository(repo: GalleryImageRespoitoryImp): GalleryImageRepository
+  @Singleton @Binds abstract fun bindGalleryVideoRepository(repo: GalleryVideoRepositoryImp): GalleryVideoRepository
 
   @ForActivity @ContributesAndroidInjector(modules = [ActivityModule::class, BaseActivityModule::class])
   abstract fun componentActivity(): ComponentActivity

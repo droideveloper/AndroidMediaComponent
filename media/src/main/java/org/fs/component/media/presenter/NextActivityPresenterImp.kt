@@ -31,12 +31,12 @@ import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForActivity
 import org.fs.architecture.util.EMPTY
+import org.fs.component.gallery.model.entity.Media
+import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
+import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.common.FFmpegBinaryCallback
 import org.fs.component.media.common.FFmpegCommandCallback
-import org.fs.component.media.model.entity.Media
-import org.fs.component.media.util.C
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.MIME_GIF
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
@@ -52,10 +52,6 @@ import javax.inject.Inject
 @ForActivity
 class NextActivityPresenterImp @Inject constructor(
   view: NextActivityView): AbstractPresenter<NextActivityView>(view), NextActivityPresenter {
-
-  companion object {
-    const val BUNDLE_ARGS_MEDIA = "bundle.args.media"
-  }
 
   private var media: Media = Media.EMPTY
   private var renderMode = RENDER_FIX // this is better to have in first case
@@ -130,7 +126,7 @@ class NextActivityPresenterImp @Inject constructor(
     }
   }
 
-  private fun scaleOrCropAndPad(media: Media, renderMode: Int) = when(media.type) {
+  private fun scaleOrCropAndPad(media: Media, renderMode: Int) = when(media.mediaType) {
     MEDIA_TYPE_IMAGE -> {
       val (x, y) = view.retrieveXY()
       val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)

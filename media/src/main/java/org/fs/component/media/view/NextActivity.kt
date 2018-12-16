@@ -29,11 +29,11 @@ import com.bumptech.glide.Glide
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.view_next_activity.*
 import org.fs.architecture.core.AbstractActivity
+import org.fs.component.gallery.model.entity.Media
+import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.R
-import org.fs.component.media.model.entity.Media
 import org.fs.component.media.presenter.NextActivityPresenter
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_IMAGE
-import org.fs.component.media.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.ROTATION_270
 import org.fs.component.media.util.C.Companion.ROTATION_90
@@ -55,6 +55,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    overridePendingTransition(R.anim.translate_right_in, R.anim.scale_out)
     super.onCreate(savedInstanceState)
     setContentView(R.layout.view_next_activity)
 
@@ -75,7 +76,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
       else -> createFixLayoutParams(media)
     }
 
-    when(media.type) {
+    when(media.mediaType) {
       MEDIA_TYPE_IMAGE -> {
         viewPreview.addView(imageViewPreview, lp)
         glide.clear(imageViewPreview)
@@ -107,7 +108,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   override fun observeNext(): Observable<View> = viewButtonNext.clicks()
   override fun observeCancel(): Observable<View> = viewButtonCancel.clicks()
 
-  private fun createFillLayoutParams(media: Media): FrameLayout.LayoutParams = when(media.type) {
+  private fun createFillLayoutParams(media: Media): FrameLayout.LayoutParams = when(media.mediaType) {
     MEDIA_TYPE_VIDEO -> {
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
@@ -133,7 +134,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     else -> FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
   }
 
-  private fun createFixLayoutParams(media: Media): FrameLayout.LayoutParams = when(media.type) {
+  private fun createFixLayoutParams(media: Media): FrameLayout.LayoutParams = when(media.mediaType) {
     MEDIA_TYPE_VIDEO -> {
       val retriever = MediaMetadataRetriever()
       retriever.setDataSource(media.file.absolutePath)
@@ -183,4 +184,9 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   }
   override fun retrieveXY(): Size = Size(viewXScrollLayout.scrollX, viewYScrollLayout.scrollY)
   override fun previewSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
+
+  override fun finish() {
+    super.finish()
+    overridePendingTransition(R.anim.scale_in, R.anim.translate_right_out)
+  }
 }

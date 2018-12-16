@@ -40,7 +40,7 @@
 
   </android.support.v7.widget.Toolbar>
 
-  <org.fs.component.media.widget.AspectFrameLayout
+  <org.fs.component.gallery.widget.SquareFrameLayout
     android:id="@+id/viewPreviewLayout"
     android:layout_width="match_parent"
     android:background="@android:color/black"
@@ -74,7 +74,7 @@
       android:text="@string/app_name"
       android:theme="@style/Widget.AppCompat.Button" />
 
-  </org.fs.component.media.widget.AspectFrameLayout>
+  </org.fs.component.gallery.widget.SquareFrameLayout>
 
   <FrameLayout
     android:layout_width="match_parent"

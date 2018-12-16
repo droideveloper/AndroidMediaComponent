@@ -17,7 +17,6 @@ package org.fs.component.media.presenter
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -38,16 +37,17 @@ import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.BusManager
 import org.fs.architecture.common.ThreadManager
 import org.fs.architecture.common.scope.ForFragment
+import org.fs.component.gallery.model.entity.Media
+import org.fs.component.gallery.model.event.NextSelectedEvent
+import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
+import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
-import org.fs.component.media.model.entity.Media
-import org.fs.component.media.model.event.NextSelectedEvent
 import org.fs.component.media.util.*
 import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
 import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
 import org.fs.component.media.view.CaptureVideoFragmentView
-import org.fs.component.media.view.NextActivity
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -444,12 +444,12 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += BusManager.add(Consumer { evt -> when(evt) {
-          is NextSelectedEvent -> view.startActivity(Intent(view.getContext(), NextActivity::class.java).apply {
+          is NextSelectedEvent -> view.startActivity(evt.intent.apply {
             val files = directory.listFiles()
             if (files.isNotEmpty()) {
               val recorded = files.firstOrNull()
               if (recorded != null) {
-                putExtra(NextActivityPresenterImp.BUNDLE_ARGS_MEDIA, Media(C.MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, "video/mp4"))
+                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, "video/mp4"))
               }
             }
           })

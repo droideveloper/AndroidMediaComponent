@@ -26,10 +26,6 @@ sealed class C {
     const val FLASH_MODE_AUTO = 0x00
     const val FLASH_MODE_DISABLED = 0x01
 
-    const val MEDIA_TYPE_IMAGE = 0x01
-    const val MEDIA_TYPE_VIDEO = 0x02
-    const val MEDIA_TYPE_ALL = 0x03
-
     const val COMPONENT_ALL = 0x01
     const val COMPONENT_PHOTO = 0x02
     const val COMPONENT_VIDEO = 0x03
@@ -37,13 +33,9 @@ sealed class C {
     const val RENDER_FILL = 0x01
     const val RENDER_FIX  = 0x02
 
-    const val UI_THREAD_DELAY = 250L
-
     const val MIME_GIF = "image/gif"
 
     const val ROTATION_90 = 90
     const val ROTATION_270 = 270
-
-    const val TOUCH_STEP = 3
   }
 }
