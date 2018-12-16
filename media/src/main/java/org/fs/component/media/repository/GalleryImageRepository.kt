@@ -22,6 +22,7 @@ import io.reactivex.Observable
 import org.fs.component.media.model.entity.Media
 import org.fs.component.media.util.C
 import java.io.File
+import java.util.stream.Collectors.toList
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +37,7 @@ class GalleryImageRepository @Inject constructor(context: Context): AbstractRepo
     private const val INDEX_MIME = 4
   }
 
-  private val contextResolver by lazy { context.contentResolver }
+  private val contentResolver by lazy { context.contentResolver }
   private val uri by lazy { MediaStore.Images.Media.EXTERNAL_CONTENT_URI }
 
   private val projection by lazy {
@@ -50,8 +51,8 @@ class GalleryImageRepository @Inject constructor(context: Context): AbstractRepo
 
   private val orderBy by lazy { MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC" }
 
-  fun loadAsync(cursor: Cursor? = contextResolver.query(uri, projection, null, null, orderBy)): Observable<List<Media>> = Observable.just(cursor)
-    .map { c -> c.toList()}
+  fun loadAsync(cursor: Cursor? = contentResolver.query(uri, projection, null, null, orderBy)): Observable<List<Media>> = Observable.just(cursor)
+    .map { c -> c.toList() }
 
   private fun Cursor.toList(): List<Media> {
     val list = ArrayList<Media>()

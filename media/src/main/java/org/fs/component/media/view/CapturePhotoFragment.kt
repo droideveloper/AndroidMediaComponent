@@ -68,10 +68,7 @@ class CapturePhotoFragment : AbstractFragment<CapturePhotoFragmentPresenter>(), 
   }
 
   override fun isTextureAvailable(): Boolean = viewTexture.isAvailable
-
   override fun observeToggleFlash(): Observable<View> = viewButtonFlash.clicks()
-
   override fun observeChangeCamera(): Observable<View> = viewButtonCamera.clicks()
-
   override fun observeCapture(): Observable<View> = viewButtonCapture.clicks()
 }

@@ -27,8 +27,7 @@ data class Media(
     val file: File,
     val taken: Long,
     val displayName: String,
-    val mime: String) : Parcelable
-{
+    val mime: String) : Parcelable {
  companion object {
    val EMPTY = Media(Int.MAX_VALUE, File(String.EMPTY), Long.MAX_VALUE, String.EMPTY, String.EMPTY)
  }

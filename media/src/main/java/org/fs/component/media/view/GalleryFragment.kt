@@ -180,9 +180,4 @@ class GalleryFragment: AbstractFragment<GalleryFragmentPresenter>(), GalleryFrag
       }
     }
   }
-
-  override fun showError(error: String) {
-    super.showError(error)
-    Log.e(this::class.java.simpleName, error)
-  }
 }
