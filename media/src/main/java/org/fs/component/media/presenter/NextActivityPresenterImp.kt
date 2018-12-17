@@ -15,6 +15,7 @@
  */
 package org.fs.component.media.presenter
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -164,6 +165,9 @@ class NextActivityPresenterImp @Inject constructor(
         }, success =  {
           if (view.isAvailable()) {
             view.hideProgress()
+            view.setResultAndFinish(Intent().apply {
+              putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+            })
           }
         }, error = {
           if (view.isAvailable()) {
@@ -186,7 +190,11 @@ class NextActivityPresenterImp @Inject constructor(
               output.close()
               cropped.recycle()
             }.async(view)
-             .subscribe()
+             .subscribe {
+               view.setResultAndFinish(Intent().apply {
+                 putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+               })
+             }
           }
           RENDER_FIX -> {
             disposeBag += Completable.fromAction {
@@ -201,7 +209,11 @@ class NextActivityPresenterImp @Inject constructor(
               output.close()
               scaled.recycle()
             }.async(view)
-             .subscribe()
+             .subscribe {
+               view.setResultAndFinish(Intent().apply {
+                 putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+               })
+             }
           }
           else -> Unit
         }
@@ -254,6 +266,9 @@ class NextActivityPresenterImp @Inject constructor(
           }, success =  {
             if (view.isAvailable()) {
               view.hideProgress()
+              view.setResultAndFinish(Intent().apply {
+                putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+              })
             }
           }, error = {
             if (view.isAvailable()) {
@@ -306,6 +321,9 @@ class NextActivityPresenterImp @Inject constructor(
           }, success =  {
             if (view.isAvailable()) {
               view.hideProgress()
+              view.setResultAndFinish(Intent().apply {
+                putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+              })
             }
           }, error = {
             if (view.isAvailable()) {

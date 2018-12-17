@@ -15,6 +15,8 @@
  */
 package org.fs.component.media.view
 
+import android.app.Activity
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -184,6 +186,15 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   }
   override fun retrieveXY(): Size = Size(viewXScrollLayout.scrollX, viewYScrollLayout.scrollY)
   override fun previewSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
+
+  override fun setResultAndFinish(data: Intent?) {
+    if (data != null) {
+      setResult(Activity.RESULT_OK, data)
+    } else {
+      setResult(Activity.RESULT_CANCELED)
+    }
+    finish()
+  }
 
   override fun finish() {
     super.finish()

@@ -19,10 +19,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Consumer
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.BusManager
 import org.fs.architecture.common.scope.ForActivity
 import org.fs.component.gallery.model.event.NextSelectedEvent
+import org.fs.component.gallery.model.event.SelectionEvent
 import org.fs.component.gallery.presenter.GalleryFragmentPresenterImp
 import org.fs.component.gallery.util.C.Companion.COMPONENT_PICK_ALL
 import org.fs.component.gallery.util.C.Companion.COMPONENT_PICK_IMAGE
@@ -76,6 +78,13 @@ class ComponentActivityPresenterImp @Inject constructor(
 
   override fun onStart() {
     if (view.isAvailable()) {
+      disposeBag += BusManager.add(Consumer { evt -> when(evt) {
+          is SelectionEvent -> view.setResultAndFinish(Intent().apply {
+            putExtra("bundle.args.selected.media", evt.media)
+          })
+        }
+      })
+
       disposeBag += view.observeNext()
         .map { NextSelectedEvent(Intent(view.getContext(), NextActivity::class.java)) }
         .subscribe(BusManager.Companion::send)
@@ -99,7 +108,7 @@ class ComponentActivityPresenterImp @Inject constructor(
 
   override fun onBackPressed() {
     if (view.isAvailable()) {
-      view.finish()
+      view.setResultAndFinish(null)
     }
   }
 
