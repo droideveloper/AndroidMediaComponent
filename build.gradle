@@ -11,7 +11,7 @@ buildscript {
     GLIDE_VERSION = '4.8.0'
     FFMPEG_VERSION = "0.3.2"
     SUPPORT_VERSION = "28.0.0"
-    ANDROID_GALLERY_COMPONENT = "0.0.2"
+    ANDROID_GALLERY_COMPONENT = "0.0.3"
   }
   repositories {
     google()

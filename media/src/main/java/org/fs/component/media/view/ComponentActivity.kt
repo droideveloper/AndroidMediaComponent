@@ -15,6 +15,8 @@
  */
 package org.fs.component.media.view
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
@@ -74,6 +76,15 @@ class ComponentActivity: AbstractActivity<ComponentActivityPresenter>(), Compone
       customView = view
       viewTabLayout.addTab(this)
     }
+  }
+
+  override fun setResultAndFinish(data: Intent?) {
+    if (data != null) {
+      setResult(Activity.RESULT_OK, data)
+    } else {
+      setResult(Activity.RESULT_CANCELED)
+    }
+    finish()
   }
 
   override fun finish() {

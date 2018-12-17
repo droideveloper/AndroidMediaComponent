@@ -18,6 +18,7 @@ package org.fs.component.media.presenter
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.graphics.Matrix
@@ -39,8 +40,10 @@ import org.fs.architecture.common.ThreadManager
 import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.gallery.model.entity.Media
 import org.fs.component.gallery.model.event.NextSelectedEvent
+import org.fs.component.gallery.model.event.SelectionEvent
 import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
+import org.fs.component.gallery.util.C.Companion.UI_THREAD_DELAY
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
@@ -442,7 +445,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += BusManager.add(Consumer { evt -> when(evt) {
-          is NextSelectedEvent -> view.startActivity(evt.intent.apply {
+          is NextSelectedEvent -> view.startActivityForResult(evt.intent.apply {
             val files = directory.listFiles()
             if (files.isNotEmpty()) {
               val taken = files.firstOrNull()
@@ -450,7 +453,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
                 putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_IMAGE, taken, Date().time, taken.name, "image/jpeg"))
               }
             }
-          })
+          }, 0x99)
         }
       })
       // will take capture here
@@ -502,6 +505,17 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
       openCamera(width, height)
     } else {
       view.surfaceTextureListener(surfaceTextureListener)
+    }
+  }
+
+  override fun activityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    if (requestCode == 0x99) {
+      data?.let { extra ->
+        val media = extra.getParcelableExtra(BUNDLE_ARGS_MEDIA) ?: Media.EMPTY
+        if (media != Media.EMPTY) {
+          ThreadManager.runOnUiThreadDelayed(Runnable { BusManager.send(SelectionEvent(media)) }, UI_THREAD_DELAY)
+        }
+      }
     }
   }
 

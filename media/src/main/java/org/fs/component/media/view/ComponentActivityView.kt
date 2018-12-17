@@ -15,6 +15,7 @@
  */
 package org.fs.component.media.view
 
+import android.content.Intent
 import android.support.annotation.StringRes
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
@@ -29,4 +30,5 @@ interface ComponentActivityView: ViewType {
   fun observeNext(): Observable<View>
   fun observeSelectedTab(): Observable<TabLayout.Tab>
   fun render(fragment: Fragment, @StringRes titleRes: Int)
+  fun setResultAndFinish(data: Intent?)
 }
