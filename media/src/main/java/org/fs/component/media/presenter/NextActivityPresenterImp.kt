@@ -18,15 +18,8 @@ package org.fs.component.media.presenter
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
-import android.util.TimeUtils
-import com.bumptech.glide.util.ByteBufferUtil.toFile
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
-import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
-import com.github.hiteshsondhi88.libffmpeg.FFmpegLoadBinaryResponseHandler
 import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
 import org.fs.architecture.common.AbstractPresenter
@@ -41,13 +34,11 @@ import org.fs.component.media.common.FFmpegCommandCallback
 import org.fs.component.media.util.C.Companion.MIME_GIF
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
-import org.fs.component.media.util.Size
 import org.fs.component.media.util.async
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
 import java.io.File
 import java.io.FileOutputStream
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @ForActivity
@@ -146,11 +137,19 @@ class NextActivityPresenterImp @Inject constructor(
         if (w > h) {
           val r = h / w.toFloat()
           val hh = Math.round(pw * r)
-          command.add("scale=$pw:$hh")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
+          val hr = when(hh % 2) {
+            0 -> hh
+            else -> hh + 1
+          }
+          command.add("scale=$pw:$hr")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
         } else {
           val r = w / h.toFloat()
           val ww = Math.round(ph * r)
-          command.add("scale=$ww:$ph")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
+          val wr = when(ww % 2) {
+            0 -> ww
+            else -> ww + 1
+          }
+          command.add("scale=$wr:$ph")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
         }
         command.add("-threads")
         command.add("16")
@@ -284,11 +283,19 @@ class NextActivityPresenterImp @Inject constructor(
             w -> {
               val r = h / w.toFloat()
               val hh = Math.round(pw * r)
-              "scale=$pw:$hh"
+              val hr = when(hh % 2) {
+                0 -> hh
+                else -> hh + 1
+              }
+              "scale=$pw:$hr"
             }//,crop=$pw:ih"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
             h -> {
               val r = w / h.toFloat()
               val ww = Math.round(ph * r)
+              val wr = when(ww % 2) {
+                0 -> ww
+                else -> ww + 1
+              }
               "scale=$ww:$ph"
             }//,crop=iw:$ph"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
             else -> String.EMPTY
