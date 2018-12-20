@@ -24,6 +24,7 @@ import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.v4.content.ContextCompat
@@ -452,7 +453,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
             if (files.isNotEmpty()) {
               val recorded = files.firstOrNull()
               if (recorded != null) {
-                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, "video/mp4"))
+                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, Uri.EMPTY, "video/mp4"))
               }
             }
           }, 0x99)

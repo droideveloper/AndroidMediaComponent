@@ -26,6 +26,7 @@ import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
+import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.v4.content.ContextCompat
@@ -59,7 +60,6 @@ import org.fs.component.media.util.component1
 import org.fs.component.media.util.component2
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CapturePhotoFragmentView
-import org.fs.component.media.view.NextActivity
 import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -450,7 +450,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
             if (files.isNotEmpty()) {
               val taken = files.firstOrNull()
               if (taken != null) {
-                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_IMAGE, taken, Date().time, taken.name, "image/jpeg"))
+                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_IMAGE, taken, Date().time, taken.name, Uri.EMPTY, "image/jpeg"))
               }
             }
           }, 0x99)
