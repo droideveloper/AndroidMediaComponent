@@ -296,7 +296,7 @@ class NextActivityPresenterImp @Inject constructor(
                 0 -> ww
                 else -> ww + 1
               }
-              "scale=$ww:$ph"
+              "scale=$wr:$ph"
             }//,crop=iw:$ph"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
             else -> String.EMPTY
           }
