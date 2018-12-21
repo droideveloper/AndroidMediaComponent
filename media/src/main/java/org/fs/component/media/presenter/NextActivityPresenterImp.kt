@@ -27,6 +27,7 @@ import org.fs.architecture.common.scope.ForActivity
 import org.fs.architecture.util.EMPTY
 import org.fs.component.gallery.model.entity.Media
 import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
+import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_SELECTED_MEDIA
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.common.FFmpegBinaryCallback
@@ -165,7 +166,7 @@ class NextActivityPresenterImp @Inject constructor(
           if (view.isAvailable()) {
             view.hideProgress()
             view.setResultAndFinish(Intent().apply {
-              putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+              putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
             })
           }
         }, error = {
@@ -191,7 +192,7 @@ class NextActivityPresenterImp @Inject constructor(
             }.async(view)
              .subscribe {
                view.setResultAndFinish(Intent().apply {
-                 putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+                 putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
                })
              }
           }
@@ -199,8 +200,14 @@ class NextActivityPresenterImp @Inject constructor(
             disposeBag += Completable.fromAction {
               val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
               val r = if(bitmap.height > bitmap.width) bitmap.width / bitmap.height.toFloat() else bitmap.height / bitmap.width.toFloat()
-              val dw = Math.round(pw * r)
-              val dh = Math.round(ph * r)
+              val dw = when {
+                bitmap.height > bitmap.width -> Math.round(pw * r)
+                else -> pw
+              }
+              val dh = when {
+                bitmap.width > bitmap.height -> Math.round(ph * r)
+                else -> ph
+              }
               val scaled = Bitmap.createScaledBitmap(bitmap, dw, dh, false)
               bitmap.recycle()
               val output = FileOutputStream(toFile(media).absolutePath)
@@ -210,7 +217,7 @@ class NextActivityPresenterImp @Inject constructor(
             }.async(view)
              .subscribe {
                view.setResultAndFinish(Intent().apply {
-                 putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+                 putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
                })
              }
           }
@@ -257,7 +264,7 @@ class NextActivityPresenterImp @Inject constructor(
           //command.add("28")
           command.add("-preset")
           command.add("ultrafast")
-          command.add(toFile(media).absolutePath)
+          command.add(toFileMp4(media).absolutePath)
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
             if (view.isAvailable()) {
               view.showProgress()
@@ -266,7 +273,7 @@ class NextActivityPresenterImp @Inject constructor(
             if (view.isAvailable()) {
               view.hideProgress()
               view.setResultAndFinish(Intent().apply {
-                putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+                putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
               })
             }
           }, error = {
@@ -329,7 +336,7 @@ class NextActivityPresenterImp @Inject constructor(
             if (view.isAvailable()) {
               view.hideProgress()
               view.setResultAndFinish(Intent().apply {
-                putExtra("bundle.args.selected.media", media.copy(file = toFile(media)))
+                putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
               })
             }
           }, error = {
