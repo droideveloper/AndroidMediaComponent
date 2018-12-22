@@ -66,11 +66,13 @@
 
     </HorizontalScrollView>
 
-    <Button
+    <ImageButton
       android:layout_gravity="bottom|start"
       android:id="@+id/viewChangeScale"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:background="@android:color/transparent"
+      android:src="@drawable/state_scale"
       android:text="@string/app_name"
       android:theme="@style/Widget.AppCompat.Button" />
 
