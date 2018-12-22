@@ -166,7 +166,7 @@ class NextActivityPresenterImp @Inject constructor(
           if (view.isAvailable()) {
             view.hideProgress()
             view.setResultAndFinish(Intent().apply {
-              putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+              putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFileMp4(media)))
             })
           }
         }, error = {
