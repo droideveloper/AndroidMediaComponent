@@ -15,6 +15,8 @@
  */
 package org.fs.component.media.util
 
+import android.support.annotation.IntDef
+import android.util.Log
 import android.util.Size
 import android.view.ViewGroup
 import io.reactivex.Completable
@@ -25,6 +27,8 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.fs.architecture.common.ViewType
+import org.fs.architecture.util.NEW_LINE
+import org.fs.component.media.BuildConfig
 
 operator fun Size.component1() = width
 operator fun Size.component2() = height
@@ -47,3 +51,27 @@ fun <T> Single<T>.async(): Single<T> = subscribeOn(Schedulers.io())
 fun <T> Single<T>.async(view: ViewType?): Single<T> = async()
   .doOnSubscribe { view?.showProgress() }
   .doFinally { view?.hideProgress() }
+
+
+// log level limitations
+@Target(AnnotationTarget.VALUE_PARAMETER)
+@IntDef(value = [Log.ASSERT, Log.DEBUG, Log.ERROR, Log.INFO, Log.VERBOSE, Log.WARN])
+annotation class LogLevel
+
+// log levels will be here
+inline fun <reified T> T.isLogEnabled(): Boolean = BuildConfig.DEBUG
+inline fun <reified T> T.getClassTag(): String = T::class.java.simpleName
+
+// log printers
+inline fun <reified T> T.log(msg: String) = log(Log.DEBUG, msg)
+inline fun <reified T> T.log(@LogLevel level: Int, msg: String) {
+  if (isLogEnabled()) {
+    val minStacksSize = 1
+    val msgStack = msg.split(String.NEW_LINE)
+    if (msgStack.size > minStacksSize) {
+      msgStack.forEach { stack -> Log.println(level, getClassTag(), stack) }
+    } else {
+      Log.println(level, getClassTag(), msg)
+    }
+  }
+}
