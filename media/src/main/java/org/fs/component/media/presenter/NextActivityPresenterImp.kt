@@ -19,6 +19,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
@@ -36,6 +37,7 @@ import org.fs.component.media.util.C.Companion.MIME_GIF
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
 import org.fs.component.media.util.async
+import org.fs.component.media.util.log
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
 import java.io.File
@@ -126,7 +128,10 @@ class NextActivityPresenterImp @Inject constructor(
       val (pw, ph) = view.previewSize()
 
       if (media.mime == MIME_GIF) {
+        // this is render fix, I need to make render fill mode too
         val command = ArrayList<String>()
+        command.add("-threads")
+        command.add("8")
         command.add("-y")
         command.add("-i")
         command.add(media.file.absolutePath)
@@ -134,47 +139,79 @@ class NextActivityPresenterImp @Inject constructor(
         command.add("faststart")
         command.add("-pix_fmt")
         command.add("yuv420p")
-        command.add("-vf")
-        if (w > h) {
-          val r = h / w.toFloat()
-          val hh = Math.round(pw * r)
-          val hr = when(hh % 2) {
-            0 -> hh
-            else -> hh + 1
-          }
-          command.add("scale=$pw:$hr")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
-        } else {
-          val r = w / h.toFloat()
-          val ww = Math.round(ph * r)
-          val wr = when(ww % 2) {
-            0 -> ww
-            else -> ww + 1
-          }
-          command.add("scale=$wr:$ph")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
-        }
-        command.add("-threads")
-        command.add("16")
-        command.add("-preset")
-        command.add("ultrafast")
-        command.add(toFileMp4(media).absolutePath)
+        when(renderMode) {
+          RENDER_FILL -> {
+            command.add("-vf")
+            val wi = if (pw > w) w else pw
+            val hi = if (ph > h) h else ph
+            command.add("crop=$wi:$hi:$x:$y")
+            command.add("-preset")
+            command.add("ultrafast")
+            command.add(toFileMp4(media).absolutePath)
 
-        ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
-          if (view.isAvailable()) {
-            view.showProgress()
+            ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
+              if (view.isAvailable()) {
+                view.showProgress()
+              }
+            }, success =  {
+              if (view.isAvailable()) {
+                view.hideProgress()
+                view.setResultAndFinish(Intent().apply {
+                  putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFileMp4(media)))
+                })
+              }
+            }, error = {
+              if (view.isAvailable()) {
+                view.showError(it ?: String.EMPTY)
+                log(Log.ERROR, it ?: String.EMPTY)
+                view.hideProgress()
+              }
+            }))
           }
-        }, success =  {
-          if (view.isAvailable()) {
-            view.hideProgress()
-            view.setResultAndFinish(Intent().apply {
-              putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFileMp4(media)))
-            })
+          RENDER_FIX -> {
+            command.add("-vf")
+            if (w > h) {
+              val r = h / w.toFloat()
+              val hh = Math.round(pw * r)
+              val hr = when(hh % 2) {
+                0 -> hh
+                else -> hh + 1
+              }
+              command.add("scale=$pw:$hr")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
+            } else {
+              val r = w / h.toFloat()
+              val ww = Math.round(ph * r)
+              val wr = when(ww % 2) {
+                0 -> ww
+                else -> ww + 1
+              }
+              command.add("scale=$wr:$ph")//,pad=720:720:(ow-iw)/2:(oh-ih)/2:color=black")
+            }
+            command.add("-preset")
+            command.add("ultrafast")
+            command.add(toFileMp4(media).absolutePath)
+
+            ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
+              if (view.isAvailable()) {
+                view.showProgress()
+              }
+            }, success =  {
+              if (view.isAvailable()) {
+                view.hideProgress()
+                view.setResultAndFinish(Intent().apply {
+                  putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFileMp4(media)))
+                })
+              }
+            }, error = {
+              if (view.isAvailable()) {
+                view.showError(it ?: String.EMPTY)
+                log(Log.ERROR, it ?: String.EMPTY)
+                view.hideProgress()
+              }
+            }))
           }
-        }, error = {
-          if (view.isAvailable()) {
-            view.showError(it ?: String.EMPTY)
-            view.hideProgress()
-          }
-        }))
+          else -> Unit
+        }
       } else {
         when (renderMode) {
           RENDER_FILL -> {
@@ -183,12 +220,14 @@ class NextActivityPresenterImp @Inject constructor(
               val displayMetrics = view.displayMetrics()
               val dx = Math.round(displayMetrics.density * x)
               val dy = Math.round(displayMetrics.density * y)
-              val cropped = Bitmap.createBitmap(bitmap, dx, dy, bitmap.width - dx, bitmap.height - dy)
-              bitmap.recycle()
+              val wf = if (bitmap.width < pw + dx) bitmap.width else pw + dx
+              val hf = if (bitmap.height < ph + dy) bitmap.height else ph + dy
+              val cropped = Bitmap.createBitmap(bitmap, dx, dy, wf, hf)
               val output = FileOutputStream(toFile(media).absolutePath)
               cropped.compress(Bitmap.CompressFormat.JPEG, 100, output)
               output.close()
               cropped.recycle()
+              bitmap.recycle()
             }.async(view)
              .subscribe {
                view.setResultAndFinish(Intent().apply {
@@ -209,11 +248,11 @@ class NextActivityPresenterImp @Inject constructor(
                 else -> ph
               }
               val scaled = Bitmap.createScaledBitmap(bitmap, dw, dh, false)
-              bitmap.recycle()
               val output = FileOutputStream(toFile(media).absolutePath)
               scaled.compress(Bitmap.CompressFormat.JPEG, 100, output)
               output.close()
               scaled.recycle()
+              bitmap.recycle()
             }.async(view)
              .subscribe {
                view.setResultAndFinish(Intent().apply {
@@ -233,6 +272,8 @@ class NextActivityPresenterImp @Inject constructor(
       val max = Math.max(w, h)
 
       val command = ArrayList<String>()
+      command.add("-threads")
+      command.add("8")
       command.add("-y")
       command.add("-i")
       command.add(media.file.absolutePath)
@@ -244,7 +285,9 @@ class NextActivityPresenterImp @Inject constructor(
       when(renderMode) {
         RENDER_FILL -> {
           command.add("-vf")
-          command.add("crop=$pw:$ph:$x:$y")
+          val wi = if (pw > w) w else pw
+          val hi = if (ph > h) h else ph
+          command.add("crop=$wi:$hi:$x:$y")
           //command.add("-t")
           //command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.end).toString())
           //command.add("-vcodec")
@@ -254,17 +297,18 @@ class NextActivityPresenterImp @Inject constructor(
           //command.add("-preset")
           //command.add("ultrafast")
           //command.add(toFile(media).absolutePath)
-          command.add("-threads")
-          command.add("16")
-          command.add("-c:v")
+          //command.add("-threads")
+          //command.add("16")
+          //command.add("-c:v")
+          command.add("-vcodec")
           command.add("libx264")
+          command.add("-preset")
+          command.add("ultrafast")
           //command.add("-bufsize")
           //command.add("8196k")
           //command.add("-crf") decrease quality
           //command.add("28")
-          command.add("-preset")
-          command.add("ultrafast")
-          command.add(toFileMp4(media).absolutePath)
+          command.add(toFile(media).absolutePath)
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
             if (view.isAvailable()) {
               view.showProgress()
@@ -316,16 +360,20 @@ class NextActivityPresenterImp @Inject constructor(
           //command.add("libx264")
           //command.add("-threads")
           //command.add("1024")
-          command.add("-threads")
-          command.add("16")
-          command.add("-c:v")
+          // command.add("-c:v")
+          //command.add("-c:v")
+          command.add("-vcodec")
           command.add("libx264")
+          command.add("-preset")
+          command.add("ultrafast")
           //command.add("-bufsize")
           //command.add("8196k")
           //command.add("-crf") decrease quality
           //command.add("28")
-          command.add("-preset")
-          command.add("ultrafast")
+          //command.add("-threads")
+          //command.add("16")
+          //command.add("-preset")
+          //command.add("ultrafast")
           command.add(toFile(media).absolutePath)
 
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
