@@ -217,12 +217,10 @@ class NextActivityPresenterImp @Inject constructor(
           RENDER_FILL -> {
             disposeBag += Completable.fromAction {
               val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
-              val displayMetrics = view.displayMetrics()
-              val dx = Math.round(displayMetrics.density * x)
-              val dy = Math.round(displayMetrics.density * y)
-              val wf = if (bitmap.width < pw + dx) bitmap.width else pw + dx
-              val hf = if (bitmap.height < ph + dy) bitmap.height else ph + dy
-              val cropped = Bitmap.createBitmap(bitmap, dx, dy, wf, hf)
+              val wf = if (bitmap.width < pw) bitmap.width - x else pw
+              val hf = if (bitmap.height < ph) bitmap.height - y else ph
+
+              val cropped = Bitmap.createBitmap(bitmap, x, y, wf, hf)
               val output = FileOutputStream(toFile(media).absolutePath)
               cropped.compress(Bitmap.CompressFormat.JPEG, 100, output)
               output.close()
