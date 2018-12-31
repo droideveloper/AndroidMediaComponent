@@ -49,16 +49,13 @@ import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
 import org.fs.component.media.common.annotation.State
-import org.fs.component.media.util.C
+import org.fs.component.media.util.*
 import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
 import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
 import org.fs.component.media.util.C.Companion.STATE_PREVIEW
 import org.fs.component.media.util.C.Companion.STATE_WAITING_LOCK
 import org.fs.component.media.util.C.Companion.STATE_WAITING_NON_PRE_CAPTURE
 import org.fs.component.media.util.C.Companion.STATE_WAITING_PRE_CAPTURE
-import org.fs.component.media.util.component1
-import org.fs.component.media.util.component2
-import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.CapturePhotoFragmentView
 import java.io.File
 import java.util.*
@@ -384,8 +381,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
   private val chooseImageSize: (choices: Array<Size>, width: Int, height: Int, selfie: Boolean) -> Size = { choices, width, height, selfie ->
     when {
-      selfie -> Collections.min(choices.filter { item -> item.height >= height }, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
-      else -> Collections.min(choices.filter { item -> item.width >= width }, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+      selfie -> choices.filter { item -> item.height >= height }.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+      else -> choices.filter { item -> item.width >= width }.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
     }
   }
 

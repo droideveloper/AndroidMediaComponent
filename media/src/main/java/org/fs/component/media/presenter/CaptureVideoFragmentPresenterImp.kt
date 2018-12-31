@@ -369,8 +369,8 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
   private val chooseVideoSize: (choices: Array<Size>, width: Int, height: Int, selfie: Boolean) -> Size = { choices, width, height, selfie ->
     when {
-      selfie -> Collections.min(choices.filter { item -> item.height >= height }, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
-      else -> Collections.min(choices.filter { item -> item.width >= width }, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+      selfie -> choices.filter { item -> item.height >= height }.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+      else -> choices.filter { item -> item.width >= width }.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
     }
   }
 
