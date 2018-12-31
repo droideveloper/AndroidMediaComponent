@@ -346,6 +346,7 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     val surface = Surface(surfaceTexture)
 
     camera?.let { device ->
+
       previewRequestBuilder = device.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
       previewRequestBuilder.addTarget(surface)
 
@@ -369,11 +370,11 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
     when {
       selfie -> when {
-        bigEnough.isNotEmpty() -> Collections.min(bigEnough, CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
         else -> choices.first()
       }
       else -> when {
-        bigEnough.isNotEmpty() -> Collections.min(bigEnough, CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
         else -> choices.first()
       }
     }

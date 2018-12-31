@@ -160,16 +160,21 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     }
     MEDIA_TYPE_IMAGE -> {
       val bitmap = BitmapFactory.decodeFile(media.file.absolutePath)
-      val metrics = resources.displayMetrics
-      val width = Math.round(bitmap.width / metrics.density)
-      val height = Math.round(bitmap.height / metrics.density)
-      val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
-      val max = Math.max(width, height)
-      val wp = if (max == width) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
-      val hp = if (max == height) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
-      FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
-        bitmap.recycle()
+      if (bitmap != null) {
+        val metrics = resources.displayMetrics
+        val width = Math.round(bitmap.width / metrics.density)
+        val height = Math.round(bitmap.height / metrics.density)
+        val ratio = if (height > width) width / height.toFloat() else height / width.toFloat()
+        val max = Math.max(width, height)
+        val wp = if (max == width) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
+        val hp = if (max == height) metrics.widthPixels else Math.round(metrics.widthPixels * ratio)
+        FrameLayout.LayoutParams(wp, hp, Gravity.CENTER).also {
+          bitmap.recycle()
+        }
+      } else {
+        FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
       }
+
     }
     else -> FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
   }
