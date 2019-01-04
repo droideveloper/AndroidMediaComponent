@@ -23,6 +23,7 @@ import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
+import net.ypresto.androidtranscoder.MediaTranscoder
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForActivity
 import org.fs.architecture.util.EMPTY
@@ -31,8 +32,11 @@ import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
 import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_SELECTED_MEDIA
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
+import org.fs.component.media.common.CodecCallback
 import org.fs.component.media.common.FFmpegBinaryCallback
 import org.fs.component.media.common.FFmpegCommandCallback
+import org.fs.component.media.common.codec.strategy.Android720CropStrategy
+import org.fs.component.media.common.codec.strategy.Android720ScaleStrategy
 import org.fs.component.media.util.C.Companion.MIME_GIF
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
@@ -99,6 +103,7 @@ class NextActivityPresenterImp @Inject constructor(
         .subscribe {scaleOrCropAndPad(media, renderMode) }
 
       disposeBag += view.observeChangeScale()
+        .filter { media.mediaType != MEDIA_TYPE_VIDEO }
         .doOnNext {
           it.isSelected = !it.isSelected
         }
@@ -222,16 +227,16 @@ class NextActivityPresenterImp @Inject constructor(
 
               val cropped = Bitmap.createBitmap(bitmap, x, y, wf, hf)
               val output = FileOutputStream(toFile(media).absolutePath)
-              cropped.compress(Bitmap.CompressFormat.JPEG, 100, output)
+              cropped.compress(Bitmap.CompressFormat.JPEG, 85, output)
               output.close()
               cropped.recycle()
               bitmap.recycle()
             }.async(view)
-             .subscribe {
+             .subscribe ({
                view.setResultAndFinish(Intent().apply {
                  putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
                })
-             }
+             }, { error -> view.showError(error.toString()) })
           }
           RENDER_FIX -> {
             disposeBag += Completable.fromAction {
@@ -247,16 +252,16 @@ class NextActivityPresenterImp @Inject constructor(
               }
               val scaled = Bitmap.createScaledBitmap(bitmap, dw, dh, false)
               val output = FileOutputStream(toFile(media).absolutePath)
-              scaled.compress(Bitmap.CompressFormat.JPEG, 100, output)
+              scaled.compress(Bitmap.CompressFormat.JPEG, 85, output)
               output.close()
               scaled.recycle()
               bitmap.recycle()
             }.async(view)
-             .subscribe {
+             .subscribe ({
                view.setResultAndFinish(Intent().apply {
                  putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
                })
-             }
+             }, { error -> view.showError(error.toString()) })
           }
           else -> Unit
         }
@@ -269,12 +274,16 @@ class NextActivityPresenterImp @Inject constructor(
       //val timeline = view.retrieveTimeline()
       val max = Math.max(w, h)
 
-      val command = ArrayList<String>()
-      command.add("-threads")
-      command.add("8")
-      command.add("-y")
-      command.add("-i")
-      command.add(media.file.absolutePath)
+      val codec = MediaTranscoder.getInstance()
+      val srcPath = media.file.absolutePath
+      val dstPath = toFile(media).absolutePath
+
+      //val command = ArrayList<String>()
+      // command.add("-threads")
+      // command.add("8")
+      // command.add("-y")
+      // command.add("-i")
+      // command.add(media.file.absolutePath)
       //command.add("-ss") // start position of video crop by time
       //command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.start).toString()) // start
 
@@ -282,10 +291,28 @@ class NextActivityPresenterImp @Inject constructor(
 
       when(renderMode) {
         RENDER_FILL -> {
-          command.add("-vf")
+          //command.add("-vf")
           val wi = if (pw > w) w else pw
           val hi = if (ph > h) h else ph
-          command.add("crop=$wi:$hi:$x:$y")
+          codec.transcodeVideo(srcPath, dstPath, Android720CropStrategy(wi, hi, x, y), CodecCallback(progress = {
+            if (view.isAvailable()) {
+              view.showProgress(it)
+            }
+          }, failed = {
+            if (view.isAvailable()) {
+              view.showError(it.toString())
+              view.hideProgress()
+            }
+          }, completed = {
+            if (view.isAvailable()) {
+              view.hideProgress()
+              view.setResultAndFinish(Intent().apply {
+                putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+              })
+            }
+          }))
+          Unit
+          //command.add("crop=$wi:$hi:$x:$y")
           //command.add("-t")
           //command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.end).toString())
           //command.add("-vcodec")
@@ -298,15 +325,15 @@ class NextActivityPresenterImp @Inject constructor(
           //command.add("-threads")
           //command.add("16")
           //command.add("-c:v")
-          command.add("-vcodec")
-          command.add("libx264")
-          command.add("-preset")
-          command.add("ultrafast")
+          //command.add("-vcodec")
+          //command.add("libx264")
+          //command.add("-preset")
+          //command.add("ultrafast")
           //command.add("-bufsize")
           //command.add("8196k")
           //command.add("-crf") decrease quality
           //command.add("28")
-          command.add(toFile(media).absolutePath)
+          /*command.add(toFile(media).absolutePath)
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
             if (view.isAvailable()) {
               view.showProgress()
@@ -323,12 +350,12 @@ class NextActivityPresenterImp @Inject constructor(
               view.showError(it ?: String.EMPTY)
               view.hideProgress()
             }
-          }))
+          }))*/
         }
         // "[0:v]scale=-1:iw,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=w=ih"
         // "[0:v]scale=ih:-1,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw"
         RENDER_FIX -> {
-          val vf = when(max) {
+          when(max) {
             w -> {
               val r = h / w.toFloat()
               val hh = Math.round(pw * r)
@@ -336,7 +363,25 @@ class NextActivityPresenterImp @Inject constructor(
                 0 -> hh
                 else -> hh + 1
               }
-              "scale=$pw:$hr"
+              codec.transcodeVideo(srcPath, dstPath, Android720ScaleStrategy(pw, hr), CodecCallback(progress = {
+                if (view.isAvailable()) {
+                  view.showProgress(it)
+                }
+              }, failed = {
+                if (view.isAvailable()) {
+                  view.showError(it.toString())
+                  view.hideProgress()
+                }
+              }, completed = {
+                if (view.isAvailable()) {
+                  view.hideProgress()
+                  view.setResultAndFinish(Intent().apply {
+                    putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+                  })
+                }
+              }))
+              // "scale=$pw:$hr"
+              Unit
             }//,crop=$pw:ih"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
             h -> {
               val r = w / h.toFloat()
@@ -345,10 +390,29 @@ class NextActivityPresenterImp @Inject constructor(
                 0 -> ww
                 else -> ww + 1
               }
-              "scale=$wr:$ph"
+              codec.transcodeVideo(srcPath, dstPath, Android720ScaleStrategy(wr, ph), CodecCallback(progress = {
+                if (view.isAvailable()) {
+                  view.showProgress(it)
+                }
+              }, failed = {
+                if (view.isAvailable()) {
+                  view.showError(it.toString())
+                  view.hideProgress()
+                }
+              }, completed = {
+                if (view.isAvailable()) {
+                  view.hideProgress()
+                  view.setResultAndFinish(Intent().apply {
+                    putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+                  })
+                }
+              }))
+              Unit
+              // "scale=$wr:$ph"
             }//,crop=iw:$ph"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
-            else -> String.EMPTY
+            else -> Unit
           }
+          /*
           command.add("-vf")
           //command.add("-lavfi")
           command.add(vf)
@@ -390,7 +454,7 @@ class NextActivityPresenterImp @Inject constructor(
               view.showError(it ?: String.EMPTY)
               view.hideProgress()
             }
-          }))
+          })) */
         }
         else -> Unit
       }

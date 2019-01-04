@@ -443,15 +443,15 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += BusManager.add(Consumer { evt -> when(evt) {
-          is NextSelectedEvent -> view.startActivityForResult(evt.intent.apply {
+        is NextSelectedEvent -> {
             val files = directory.listFiles()
             if (files.isNotEmpty()) {
               val taken = files.firstOrNull()
               if (taken != null) {
-                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_IMAGE, taken, Date().time, taken.name, Uri.EMPTY, "image/jpeg"))
+                BusManager.send(SelectionEvent(Media(MEDIA_TYPE_IMAGE, taken, Date().time, taken.name, Uri.EMPTY, "image/jpeg")))
               }
             }
-          }, 0x99)
+          }
         }
       })
       // will take capture here
@@ -503,17 +503,6 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
       openCamera(width, height)
     } else {
       view.surfaceTextureListener(surfaceTextureListener)
-    }
-  }
-
-  override fun activityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    if (requestCode == 0x99) {
-      data?.let { extra ->
-        val media = extra.getParcelableExtra(BUNDLE_ARGS_MEDIA) ?: Media.EMPTY
-        if (media != Media.EMPTY) {
-          ThreadManager.runOnUiThreadDelayed(Runnable { BusManager.send(SelectionEvent(media)) }, UI_THREAD_DELAY)
-        }
-      }
     }
   }
 

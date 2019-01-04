@@ -448,15 +448,15 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   override fun onStart() {
     if (view.isAvailable()) {
       disposeBag += BusManager.add(Consumer { evt -> when(evt) {
-          is NextSelectedEvent -> view.startActivityForResult(evt.intent.apply {
+          is NextSelectedEvent ->  {
             val files = directory.listFiles()
             if (files.isNotEmpty()) {
               val recorded = files.firstOrNull()
               if (recorded != null) {
-                putExtra(BUNDLE_ARGS_MEDIA, Media(MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, Uri.EMPTY, "video/mp4"))
+                BusManager.send(SelectionEvent(Media(MEDIA_TYPE_VIDEO, recorded, Date().time, recorded.name, Uri.EMPTY, "video/mp4")))
               }
             }
-          }, 0x99)
+          }
         }
       })
       // change flash
@@ -527,16 +527,5 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   override fun onPause() {
     closeCamera()
     stopBackgroundThread()
-  }
-
-  override fun activityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    if (requestCode == 0x99) {
-      data?.let { extra ->
-        val media = extra.getParcelableExtra(BUNDLE_ARGS_MEDIA) ?: Media.EMPTY
-        if (media != Media.EMPTY) {
-          ThreadManager.runOnUiThreadDelayed(Runnable { BusManager.send(SelectionEvent(media)) }, UI_THREAD_DELAY)
-        }
-      }
-    }
   }
 }  
