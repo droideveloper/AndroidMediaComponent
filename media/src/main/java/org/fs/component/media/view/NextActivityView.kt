@@ -36,4 +36,5 @@ interface NextActivityView: ViewType {
   fun retrieveSize(mediaType: Int): Size
   fun render(media: Media, renderMode: Int)
   fun setResultAndFinish(data: Intent?)
+  fun showProgress(progress: Double)
 }

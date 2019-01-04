@@ -45,6 +45,10 @@ import org.fs.rx.extensions.util.clicks
 
 class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView {
 
+  companion object {
+    private const val MAX_PROGRESS = 1000
+  }
+
   private val imageViewPreview by lazy { ImageView(this) }
   private val videoViewPreview by lazy { VideoView(this) }
   private val glide by lazy { Glide.with(this) }
@@ -54,6 +58,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
     viewProgress.visibility = if (show) View.VISIBLE else View.GONE
     // will be disabled when we showing progress
     viewButtonNext.isEnabled = !show
+    viewTextInfo.visibility = if (show) View.VISIBLE else View.GONE
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +72,7 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
 
   override fun setUp(media: Media, renderMode: Int) {
     hideProgress()
+    viewProgress.max = MAX_PROGRESS
     render(media, renderMode)
   }
 
@@ -106,6 +112,21 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
 
   override fun showProgress() = showOrHideProgress(true)
   override fun hideProgress() = showOrHideProgress(false)
+
+  override fun showProgress(progress: Double) {
+    if (progress < 0) {
+      viewProgress.isIndeterminate = true
+      viewProgress.visibility = View.VISIBLE
+    } else {
+      viewProgress.isIndeterminate = false
+      viewProgress.progress = Math.round(progress * MAX_PROGRESS).toInt()
+      if (viewProgress.visibility != View.VISIBLE) {
+        viewProgress.visibility = View.VISIBLE
+      }
+    }
+    viewButtonNext.isEnabled = false
+    viewTextInfo.visibility = View.VISIBLE
+  }
 
   override fun observeNext(): Observable<View> = viewButtonNext.clicks()
   override fun observeCancel(): Observable<View> = viewButtonCancel.clicks()
