@@ -17,7 +17,6 @@ package org.fs.component.media.presenter
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -42,9 +41,7 @@ import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.gallery.model.entity.Media
 import org.fs.component.gallery.model.event.NextSelectedEvent
 import org.fs.component.gallery.model.event.SelectionEvent
-import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
-import org.fs.component.gallery.util.C.Companion.UI_THREAD_DELAY
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
@@ -240,7 +237,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
     camera?.let { cameraDevice ->
       if (view.isTextureAvailable()) {
 
-        // clear everthing we do not want to see
+        // clear everything we do not want to see
         val files = directory.listFiles()
         if (files.isNotEmpty()) {
           files.forEach { f -> f.delete() }
@@ -357,11 +354,11 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
     when {
       selfie -> when {
-        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR) ?: choices.first()
         else -> choices.first()
       }
       else -> when {
-        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR) ?: choices.first()
         else -> choices.first()
       }
     }
@@ -369,8 +366,8 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
 
   private val chooseVideoSize: (choices: Array<Size>, width: Int, height: Int, selfie: Boolean) -> Size = { choices, width, height, selfie ->
     when {
-      selfie -> choices.filter { item -> item.height >= height }.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
-      else -> choices.filter { item -> item.width >= width }.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+      selfie -> choices.filter { item -> item.height >= height }.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR) ?: choices.first()
+      else -> choices.filter { item -> item.width >= width }.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR) ?: choices.first()
     }
   }
 
@@ -422,7 +419,7 @@ class CaptureVideoFragmentPresenterImp @Inject constructor(
   private var recording = false
   private var sensorOrientation = 0
   private var flashSupported = false
-  @FlashMode private var flash = C.FLASH_MODE_AUTO
+  @FlashMode private var flash = FLASH_MODE_AUTO
   @Direction private var cameraDirection = CameraCharacteristics.LENS_FACING_BACK
 
   private val file get() = File(directory,"${System.currentTimeMillis()}_VID$FILE_SUFFIX")
