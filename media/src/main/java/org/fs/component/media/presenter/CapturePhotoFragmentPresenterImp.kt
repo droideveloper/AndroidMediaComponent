@@ -18,7 +18,6 @@ package org.fs.component.media.presenter
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.graphics.Matrix
@@ -42,9 +41,7 @@ import org.fs.architecture.common.scope.ForFragment
 import org.fs.component.gallery.model.entity.Media
 import org.fs.component.gallery.model.event.NextSelectedEvent
 import org.fs.component.gallery.model.event.SelectionEvent
-import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
-import org.fs.component.gallery.util.C.Companion.UI_THREAD_DELAY
 import org.fs.component.media.common.*
 import org.fs.component.media.common.annotation.Direction
 import org.fs.component.media.common.annotation.FlashMode
@@ -52,6 +49,7 @@ import org.fs.component.media.common.annotation.State
 import org.fs.component.media.util.*
 import org.fs.component.media.util.C.Companion.FLASH_MODE_AUTO
 import org.fs.component.media.util.C.Companion.FLASH_MODE_DISABLED
+import org.fs.component.media.util.C.Companion.STATE_PICTURE_TAKEN
 import org.fs.component.media.util.C.Companion.STATE_PREVIEW
 import org.fs.component.media.util.C.Companion.STATE_WAITING_LOCK
 import org.fs.component.media.util.C.Companion.STATE_WAITING_NON_PRE_CAPTURE
@@ -128,14 +126,14 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
             || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE
             || aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED
         if (hasAeStateWaiting) {
-          state = C.STATE_WAITING_NON_PRE_CAPTURE
+          state = STATE_WAITING_NON_PRE_CAPTURE
         }
       }
       STATE_WAITING_NON_PRE_CAPTURE -> {
         val aeState = result.get(CaptureResult.CONTROL_AE_STATE)
         val hasStateMature = aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE
         if (hasStateMature) {
-          state = C.STATE_PICTURE_TAKEN
+          state = STATE_PICTURE_TAKEN
           captureStillPicture()
         }
       }
@@ -370,11 +368,11 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
     when {
       selfie -> when {
-        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
+        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR) ?: choices.first()
         else -> choices.first()
       }
       else -> when {
-        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+        bigEnough.isNotEmpty() -> bigEnough.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR) ?: choices.first()
         else -> choices.first()
       }
     }
@@ -382,8 +380,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
   private val chooseImageSize: (choices: Array<Size>, width: Int, height: Int, selfie: Boolean) -> Size = { choices, width, height, selfie ->
     when {
-      selfie -> choices.filter { item -> item.height >= height }.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR)
-      else -> choices.filter { item -> item.width >= width }.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR)
+      selfie -> choices.filter { item -> item.height >= height }.min(CompareSizesByHeight.BY_HEIGHT_COMPARATOR) ?: choices.first()
+      else -> choices.filter { item -> item.width >= width }.min(CompareSizesByWidth.BY_WIDTH_COMPARATOR) ?: choices.first()
     }
   }
 
@@ -400,8 +398,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
     } ?: false
   }
 
-  @FlashMode private var flash = C.FLASH_MODE_DISABLED
-  @State private var state = C.STATE_PREVIEW
+  @FlashMode private var flash = FLASH_MODE_DISABLED
+  @State private var state = STATE_PREVIEW
   @Direction private var cameraDirection = CameraCharacteristics.LENS_FACING_BACK
   private var flashSupported = false
   private var cameraOpenCloseLock = Semaphore(1)

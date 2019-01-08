@@ -76,14 +76,17 @@ inline fun <reified T> T.log(@LogLevel level: Int, msg: String) {
   }
 }
 
-fun <T> Collection<T>.min(comp: Comparator<T>): T {
+fun <T> Collection<T>.min(comp: Comparator<T>): T? {
   val i = iterator()
-  var candidate = i.next()
-  while (i.hasNext()) {
-    val next = i.next()
-    if (comp.compare(candidate, next) < 0) {
-      candidate = next
+  if (i.hasNext()) {
+    var candidate = i.next()
+    while (i.hasNext()) {
+      val next = i.next()
+      if (comp.compare(candidate, next) < 0) {
+        candidate = next
+      }
     }
+    return candidate
   }
-  return candidate
+  return null
 }
