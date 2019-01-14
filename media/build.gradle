@@ -9,7 +9,7 @@ android {
     minSdkVersion 21
     targetSdkVersion 28
     versionCode 1
-    versionName "0.0.21"
+    versionName "0.0.22"
   }
 
   lintOptions {
@@ -43,7 +43,7 @@ dependencies {
 
   api "org.fs.component:gallery:$ANDROID_GALLERY_COMPONENT"
 
-  implementation "com.writingminds:FFmpegAndroid:$FFMPEG_VERSION"
+  // implementation "com.writingminds:FFmpegAndroid:$FFMPEG_VERSION"
 
   implementation "com.github.bumptech.glide:glide:$GLIDE_VERSION"
   kapt "com.github.bumptech.glide:compiler:$GLIDE_VERSION"
@@ -56,7 +56,7 @@ dependencies {
 ext {
   PUBLISH_GROUP_ID = 'org.fs.component'
   PUBLISH_ARTIFACT_ID = 'media'
-  PUBLISH_VERSION = '0.0.21'
+  PUBLISH_VERSION = '0.0.22'
 }
 
 apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
