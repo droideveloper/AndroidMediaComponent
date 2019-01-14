@@ -19,29 +19,23 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
 import net.ypresto.androidtranscoder.MediaTranscoder
 import org.fs.architecture.common.AbstractPresenter
 import org.fs.architecture.common.scope.ForActivity
-import org.fs.architecture.util.EMPTY
 import org.fs.component.gallery.model.entity.Media
 import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_MEDIA
 import org.fs.component.gallery.util.C.Companion.BUNDLE_ARGS_SELECTED_MEDIA
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_IMAGE
 import org.fs.component.gallery.util.C.Companion.MEDIA_TYPE_VIDEO
 import org.fs.component.media.common.CodecCallback
-import org.fs.component.media.common.FFmpegBinaryCallback
-import org.fs.component.media.common.FFmpegCommandCallback
 import org.fs.component.media.common.codec.strategy.Android720CropStrategy
 import org.fs.component.media.common.codec.strategy.Android720ScaleStrategy
 import org.fs.component.media.util.C.Companion.MIME_GIF
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
 import org.fs.component.media.util.async
-import org.fs.component.media.util.log
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
 import java.io.File
@@ -56,7 +50,7 @@ class NextActivityPresenterImp @Inject constructor(
   private var renderMode = RENDER_FIX // this is better to have in first case
 
   private val disposeBag by lazy { CompositeDisposable() }
-  private val ffmpeg by lazy { FFmpeg.getInstance(view.getContext()) }
+  //private val ffmpeg by lazy { FFmpeg.getInstance(view.getContext()) }
   private var supportFfmpeg = false
   private val directory by lazy { File(view.getContext()?.filesDir, "modified_file") }
 
@@ -87,13 +81,13 @@ class NextActivityPresenterImp @Inject constructor(
       }
     }
     // load ffmpeg binaries
-    ffmpeg.loadBinary(FFmpegBinaryCallback(success = {
-      supportFfmpeg = true
-    }, error = {
-      if (view.isAvailable()) {
-        view.showError("We can not load binaries for video processing")
-      }
-    }))
+    //ffmpeg.loadBinary(FFmpegBinaryCallback(success = {
+    //  supportFfmpeg = true
+    //}, error = {
+    //  if (view.isAvailable()) {
+    //    view.showError("We can not load binaries for video processing")
+     // }
+    //}))
   }
 
   override fun onStart() {
@@ -133,7 +127,11 @@ class NextActivityPresenterImp @Inject constructor(
       val (pw, ph) = view.previewSize()
 
       if (media.mime == MIME_GIF) {
+        view.setResultAndFinish(Intent().apply {
+          putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media)
+        })
         // this is render fix, I need to make render fill mode too
+        /*
         val command = ArrayList<String>()
         command.add("-threads")
         command.add("8")
@@ -216,7 +214,7 @@ class NextActivityPresenterImp @Inject constructor(
             }))
           }
           else -> Unit
-        }
+        } */
       } else {
         when (renderMode) {
           RENDER_FILL -> {
@@ -463,5 +461,5 @@ class NextActivityPresenterImp @Inject constructor(
   }
 
   private fun toFile(media: Media): File = File(directory, media.file.name)
-  private fun toFileMp4(media: Media): File = File(directory, "${media.file.name}.mp4")
+  // private fun toFileMp4(media: Media): File = File(directory, "${media.file.name}.mp4")
 }
