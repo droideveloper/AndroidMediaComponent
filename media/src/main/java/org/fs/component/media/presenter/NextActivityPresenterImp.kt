@@ -19,6 +19,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
 import net.ypresto.androidtranscoder.MediaTranscoder
@@ -35,7 +36,10 @@ import org.fs.component.media.common.codec.strategy.Android720ScaleStrategy
 import org.fs.component.media.util.C.Companion.MIME_GIF
 import org.fs.component.media.util.C.Companion.RENDER_FILL
 import org.fs.component.media.util.C.Companion.RENDER_FIX
+import org.fs.component.media.util.C.Companion.ROTATION_270
+import org.fs.component.media.util.C.Companion.ROTATION_90
 import org.fs.component.media.util.async
+import org.fs.component.media.util.log
 import org.fs.component.media.util.plusAssign
 import org.fs.component.media.view.NextActivityView
 import java.io.File
@@ -353,6 +357,7 @@ class NextActivityPresenterImp @Inject constructor(
         // "[0:v]scale=-1:iw,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=w=ih"
         // "[0:v]scale=ih:-1,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw"
         RENDER_FIX -> {
+          val rotation = view.rotation(media)
           when(max) {
             w -> {
               val r = h / w.toFloat()
@@ -361,7 +366,11 @@ class NextActivityPresenterImp @Inject constructor(
                 0 -> hh
                 else -> hh + 1
               }
-              codec.transcodeVideo(srcPath, dstPath, Android720ScaleStrategy(pw, hr), CodecCallback(progress = {
+              val strategy = when(rotation) {
+                ROTATION_90, ROTATION_270 -> Android720ScaleStrategy(hr, pw)
+                else -> Android720ScaleStrategy(pw, hr)
+              }
+              codec.transcodeVideo(srcPath, dstPath, strategy, CodecCallback(progress = {
                 if (view.isAvailable()) {
                   view.showProgress(it)
                 }
@@ -388,7 +397,11 @@ class NextActivityPresenterImp @Inject constructor(
                 0 -> ww
                 else -> ww + 1
               }
-              codec.transcodeVideo(srcPath, dstPath, Android720ScaleStrategy(wr, ph), CodecCallback(progress = {
+              val strategy = when(rotation) {
+                ROTATION_90, ROTATION_270 -> Android720ScaleStrategy(ph, wr)
+                else -> Android720ScaleStrategy(wr, ph)
+              }
+              codec.transcodeVideo(srcPath, dstPath, strategy, CodecCallback(progress = {
                 if (view.isAvailable()) {
                   view.showProgress(it)
                 }
