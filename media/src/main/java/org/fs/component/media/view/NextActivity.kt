@@ -213,6 +213,18 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   override fun retrieveXY(): Size = Size(viewXScrollLayout.scrollX, viewYScrollLayout.scrollY)
   override fun previewSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
 
+  override fun rotation(media: Media): Int {
+    val retriever = MediaMetadataRetriever()
+    retriever.setDataSource(media.file.absolutePath)
+    return when(media.mediaType) {
+      MEDIA_TYPE_VIDEO -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION).toInt()
+      MEDIA_TYPE_IMAGE -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_IMAGE_ROTATION).toInt()
+      else -> 0
+    }.also {
+      retriever.release()
+    }
+  }
+
   override fun setResultAndFinish(data: Intent?) {
     if (data != null) {
       setResult(Activity.RESULT_OK, data)

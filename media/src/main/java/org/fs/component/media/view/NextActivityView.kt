@@ -34,6 +34,7 @@ interface NextActivityView: ViewType {
   fun previewSize(): Size
   fun retrieveTimeline(): Timeline
   fun retrieveSize(mediaType: Int): Size
+  fun rotation(media: Media): Int
   fun render(media: Media, renderMode: Int)
   fun setResultAndFinish(data: Intent?)
   fun showProgress(progress: Double)
