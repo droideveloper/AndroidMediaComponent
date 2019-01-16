@@ -129,6 +129,7 @@ class NextActivityPresenterImp @Inject constructor(
       val (x, y) = view.retrieveXY()
       val (w, h) = view.retrieveSize(MEDIA_TYPE_IMAGE)
       val (pw, ph) = view.previewSize()
+      val rotation = view.rotation(media)
 
       if (media.mime == MIME_GIF) {
         view.setResultAndFinish(Intent().apply {
@@ -227,7 +228,10 @@ class NextActivityPresenterImp @Inject constructor(
               val wf = if (bitmap.width < pw) bitmap.width - x else pw
               val hf = if (bitmap.height < ph) bitmap.height - y else ph
 
-              val cropped = Bitmap.createBitmap(bitmap, x, y, wf, hf)
+              val cropped = when(rotation) {
+                ROTATION_90, ROTATION_270 -> Bitmap.createBitmap(bitmap, x, y, hf, wf)
+                else -> Bitmap.createBitmap(bitmap, x, y, wf, hf)
+              }
               val output = FileOutputStream(toFile(media).absolutePath)
               cropped.compress(Bitmap.CompressFormat.JPEG, 85, output)
               output.close()
@@ -252,7 +256,10 @@ class NextActivityPresenterImp @Inject constructor(
                 bitmap.width > bitmap.height -> Math.round(ph * r)
                 else -> ph
               }
-              val scaled = Bitmap.createScaledBitmap(bitmap, dw, dh, false)
+              val scaled = when(rotation) {
+                ROTATION_90, ROTATION_270 -> Bitmap.createScaledBitmap(bitmap, dh, dw, false)
+                else -> Bitmap.createScaledBitmap(bitmap, dw, dh, false)
+              }
               val output = FileOutputStream(toFile(media).absolutePath)
               scaled.compress(Bitmap.CompressFormat.JPEG, 85, output)
               output.close()
