@@ -19,7 +19,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
+import com.bumptech.glide.util.ByteBufferUtil.toFile
 import io.reactivex.Completable
 import io.reactivex.disposables.CompositeDisposable
 import net.ypresto.androidtranscoder.MediaTranscoder
@@ -298,51 +300,57 @@ class NextActivityPresenterImp @Inject constructor(
 
       //ffmpeg -i input.mp4 -lavfi '[0:v]scale=ih*16/9:-1,boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw*9/16' -vb 800K output.webm
 
-      when(renderMode) {
-        RENDER_FILL -> {
-          //command.add("-vf")
-          val wi = if (pw > w) w else pw
-          val hi = if (ph > h) h else ph
-          codec.transcodeVideo(srcPath, dstPath, Android720CropStrategy(wi, hi, x, y), CodecCallback(progress = {
-            if (view.isAvailable()) {
-              view.showProgress(it)
-            }
-          }, failed = {
-            if (view.isAvailable()) {
-              view.showError(it.toString())
-              view.hideProgress()
-            }
-          }, completed = {
-            if (view.isAvailable()) {
-              view.hideProgress()
-              view.setResultAndFinish(Intent().apply {
-                putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
-              })
-            }
-          }))
-          Unit
-          //command.add("crop=$wi:$hi:$x:$y")
-          //command.add("-t")
-          //command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.end).toString())
-          //command.add("-vcodec")
-          //command.add("libx264")
-          //command.add("-threads")
-          //command.add("2")
-          //command.add("-preset")
-          //command.add("ultrafast")
-          //command.add(toFile(media).absolutePath)
-          //command.add("-threads")
-          //command.add("16")
-          //command.add("-c:v")
-          //command.add("-vcodec")
-          //command.add("libx264")
-          //command.add("-preset")
-          //command.add("ultrafast")
-          //command.add("-bufsize")
-          //command.add("8196k")
-          //command.add("-crf") decrease quality
-          //command.add("28")
-          /*command.add(toFile(media).absolutePath)
+      if (TextUtils.equals("video/webm", media.mime)) {
+        view.setResultAndFinish(Intent().apply {
+          putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media)
+        })
+      } else {
+        when (renderMode) {
+          RENDER_FILL -> {
+            //command.add("-vf")
+            val wi = if (pw > w) w else pw
+            val hi = if (ph > h) h else ph
+            codec.transcodeVideo(srcPath, dstPath, Android720CropStrategy(wi, hi, x, y),
+                CodecCallback(progress = {
+                  if (view.isAvailable()) {
+                    view.showProgress(it)
+                  }
+                }, failed = {
+                  if (view.isAvailable()) {
+                    view.showError(it.toString())
+                    view.hideProgress()
+                  }
+                }, completed = {
+                  if (view.isAvailable()) {
+                    view.hideProgress()
+                    view.setResultAndFinish(Intent().apply {
+                      putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+                    })
+                  }
+                }))
+            Unit
+            //command.add("crop=$wi:$hi:$x:$y")
+            //command.add("-t")
+            //command.add(TimeUnit.MILLISECONDS.toSeconds(timeline.end).toString())
+            //command.add("-vcodec")
+            //command.add("libx264")
+            //command.add("-threads")
+            //command.add("2")
+            //command.add("-preset")
+            //command.add("ultrafast")
+            //command.add(toFile(media).absolutePath)
+            //command.add("-threads")
+            //command.add("16")
+            //command.add("-c:v")
+            //command.add("-vcodec")
+            //command.add("libx264")
+            //command.add("-preset")
+            //command.add("ultrafast")
+            //command.add("-bufsize")
+            //command.add("8196k")
+            //command.add("-crf") decrease quality
+            //command.add("28")
+            /*command.add(toFile(media).absolutePath)
           ffmpeg.execute(command.toTypedArray(), FFmpegCommandCallback(start = {
             if (view.isAvailable()) {
               view.showProgress()
@@ -360,77 +368,77 @@ class NextActivityPresenterImp @Inject constructor(
               view.hideProgress()
             }
           }))*/
-        }
-        // "[0:v]scale=-1:iw,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=w=ih"
-        // "[0:v]scale=ih:-1,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw"
-        RENDER_FIX -> {
-          val rotation = view.rotation(media)
-          when(max) {
-            w -> {
-              val r = h / w.toFloat()
-              val hh = Math.round(pw * r)
-              val hr = when(hh % 2) {
-                0 -> hh
-                else -> hh + 1
-              }
-              val strategy = when(rotation) {
-                ROTATION_90, ROTATION_270 -> Android720ScaleStrategy(hr, pw)
-                else -> Android720ScaleStrategy(pw, hr)
-              }
-              codec.transcodeVideo(srcPath, dstPath, strategy, CodecCallback(progress = {
-                if (view.isAvailable()) {
-                  view.showProgress(it)
-                }
-              }, failed = {
-                if (view.isAvailable()) {
-                  view.showError(it.toString())
-                  view.hideProgress()
-                }
-              }, completed = {
-                if (view.isAvailable()) {
-                  view.hideProgress()
-                  view.setResultAndFinish(Intent().apply {
-                    putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
-                  })
-                }
-              }))
-              // "scale=$pw:$hr"
-              Unit
-            }//,crop=$pw:ih"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
-            h -> {
-              val r = w / h.toFloat()
-              val ww = Math.round(ph * r)
-              val wr = when(ww % 2) {
-                0 -> ww
-                else -> ww + 1
-              }
-              val strategy = when(rotation) {
-                ROTATION_90, ROTATION_270 -> Android720ScaleStrategy(ph, wr)
-                else -> Android720ScaleStrategy(wr, ph)
-              }
-              codec.transcodeVideo(srcPath, dstPath, strategy, CodecCallback(progress = {
-                if (view.isAvailable()) {
-                  view.showProgress(it)
-                }
-              }, failed = {
-                if (view.isAvailable()) {
-                  view.showError(it.toString())
-                  view.hideProgress()
-                }
-              }, completed = {
-                if (view.isAvailable()) {
-                  view.hideProgress()
-                  view.setResultAndFinish(Intent().apply {
-                    putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
-                  })
-                }
-              }))
-              Unit
-              // "scale=$wr:$ph"
-            }//,crop=iw:$ph"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
-            else -> Unit
           }
-          /*
+          // "[0:v]scale=-1:iw,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=w=ih"
+          // "[0:v]scale=ih:-1,boxblur=luma_radius=min(h\\,w)/20:luma_power=1:chroma_radius=min(cw\\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw"
+          RENDER_FIX -> {
+            val rotation = view.rotation(media)
+            when (max) {
+              w -> {
+                val r = h / w.toFloat()
+                val hh = Math.round(pw * r)
+                val hr = when (hh % 2) {
+                  0 -> hh
+                  else -> hh + 1
+                }
+                val strategy = when (rotation) {
+                  ROTATION_90, ROTATION_270 -> Android720ScaleStrategy(hr, pw)
+                  else -> Android720ScaleStrategy(pw, hr)
+                }
+                codec.transcodeVideo(srcPath, dstPath, strategy, CodecCallback(progress = {
+                  if (view.isAvailable()) {
+                    view.showProgress(it)
+                  }
+                }, failed = {
+                  if (view.isAvailable()) {
+                    view.showError(it.toString())
+                    view.hideProgress()
+                  }
+                }, completed = {
+                  if (view.isAvailable()) {
+                    view.hideProgress()
+                    view.setResultAndFinish(Intent().apply {
+                      putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+                    })
+                  }
+                }))
+                // "scale=$pw:$hr"
+                Unit
+              }//,crop=$pw:ih"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
+              h -> {
+                val r = w / h.toFloat()
+                val ww = Math.round(ph * r)
+                val wr = when (ww % 2) {
+                  0 -> ww
+                  else -> ww + 1
+                }
+                val strategy = when (rotation) {
+                  ROTATION_90, ROTATION_270 -> Android720ScaleStrategy(ph, wr)
+                  else -> Android720ScaleStrategy(wr, ph)
+                }
+                codec.transcodeVideo(srcPath, dstPath, strategy, CodecCallback(progress = {
+                  if (view.isAvailable()) {
+                    view.showProgress(it)
+                  }
+                }, failed = {
+                  if (view.isAvailable()) {
+                    view.showError(it.toString())
+                    view.hideProgress()
+                  }
+                }, completed = {
+                  if (view.isAvailable()) {
+                    view.hideProgress()
+                    view.setResultAndFinish(Intent().apply {
+                      putExtra(BUNDLE_ARGS_SELECTED_MEDIA, media.copy(file = toFile(media)))
+                    })
+                  }
+                }))
+                Unit
+                // "scale=$wr:$ph"
+              }//,crop=iw:$ph"//,pad=$pw:$ph:(ow-iw)/2:(oh-ih)/2:color=black"
+              else -> Unit
+            }
+            /*
           command.add("-vf")
           //command.add("-lavfi")
           command.add(vf)
@@ -475,6 +483,7 @@ class NextActivityPresenterImp @Inject constructor(
           })) */
         }
         else -> Unit
+      }
       }
     }
     else -> Unit

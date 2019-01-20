@@ -2,6 +2,7 @@ package org.fs.component.media.common.codec.strategy;
 
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.os.Build;
 import net.ypresto.androidtranscoder.format.MediaFormatStrategy;
 
