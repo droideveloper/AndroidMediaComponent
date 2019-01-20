@@ -20,8 +20,10 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -41,7 +43,10 @@ import org.fs.component.media.util.C.Companion.ROTATION_270
 import org.fs.component.media.util.C.Companion.ROTATION_90
 import org.fs.component.media.util.Size
 import org.fs.component.media.util.Timeline
+import org.fs.component.media.util.log
+import org.fs.rx.extensions.util.EMPTY
 import org.fs.rx.extensions.util.clicks
+import kotlin.math.log
 
 class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView {
 
@@ -214,14 +219,25 @@ class NextActivity : AbstractActivity<NextActivityPresenter>(), NextActivityView
   override fun previewSize(): Size = Size(viewPreviewLayout.width, viewPreviewLayout.height)
 
   override fun rotation(media: Media): Int {
-    val retriever = MediaMetadataRetriever()
-    retriever.setDataSource(media.file.absolutePath)
-    return when(media.mediaType) {
-      MEDIA_TYPE_VIDEO -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION).toInt()
-      MEDIA_TYPE_IMAGE -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_IMAGE_ROTATION).toInt()
-      else -> 0
-    }.also {
-      retriever.release()
+    try {
+      val retriever = MediaMetadataRetriever()
+      val fileInputStream = media.file.inputStream()
+      retriever.setDataSource(fileInputStream.fd)
+      return when (media.mediaType) {
+        MEDIA_TYPE_VIDEO -> retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION).toInt()
+        MEDIA_TYPE_IMAGE -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+          retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_IMAGE_ROTATION).toInt()
+        } else {
+          0
+        }
+        else -> 0
+      }.also {
+        fileInputStream.close()
+        retriever.release()
+      }
+    } catch (error: Throwable) {
+      showError(error.localizedMessage ?: String.EMPTY)
+      return 0
     }
   }
 
