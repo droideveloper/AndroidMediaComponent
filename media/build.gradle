@@ -9,7 +9,7 @@ android {
     minSdkVersion 21
     targetSdkVersion 28
     versionCode 1
-    versionName "0.0.25"
+    versionName "0.0.26"
   }
 
   lintOptions {
@@ -50,13 +50,13 @@ dependencies {
 
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"
 
-  implementation 'net.ypresto.androidtranscoder:android-transcoder:0.2.0'
+  implementation project(":transcoder") //'net.ypresto.androidtranscoder:android-transcoder:0.2.0'
 }
 
 ext {
   PUBLISH_GROUP_ID = 'org.fs.component'
   PUBLISH_ARTIFACT_ID = 'media'
-  PUBLISH_VERSION = '0.0.25'
+  PUBLISH_VERSION = '0.0.26'
 }
 
 apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'

@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.2.4'
+    }
+}
+
+apply plugin: 'com.android.library'
+// apply plugin: 'bintray-release'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 28
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        staging {
+            minifyEnabled false
+        }
+        release {
+            zipAlignEnabled true
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+/*
+publish {
+    groupId = 'net.ypresto.androidtranscoder'
+    artifactId = 'android-transcoder'
+    version = '0.3.0'
+    licences = ['Apache-2.0']
+    website = 'https://github.com/ypresto/android-transcoder'
+    autoPublish = false
+    dryRun = false
+}*/

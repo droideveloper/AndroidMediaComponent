@@ -104,8 +104,8 @@ class CapturePhotoFragmentPresenterImp @Inject constructor(
 
   private val whenDisconnected: (camera: CameraDevice?) -> Unit = { camera ->
     cameraOpenCloseLock.release()
-    camera?.close()
     this.camera = null
+    camera?.close()
   }
 
   private val whenError: (camera: CameraDevice?, error: Int) -> Unit = { camera, _ ->
